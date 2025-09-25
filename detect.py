@@ -11,6 +11,7 @@
 import spidev # For interfacing with SPI devices from user space via the spidev linux kernel driver.
 import RPi.GPIO as GPIO
 import subprocess
+import logging
 
 #*****************************************************#
 #This section is for SPI detection
@@ -72,23 +73,34 @@ addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
 	"PIR" : 00
 }
 
+#Basic logging configurations for the TSL2591
+logging.basicConfig(
+    filename='detect_tsl2591.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filemode='w'
+)
+
 # Function1 - scan_i2c(busnum) - Run i2c detect on selected bus and return
 # string with i2c output
 def scan_i2c(busnum):
-	# Set up subprocess call
-	try:
-		result_text = subprocess.run(f"sudo i2cdetect -y {busnum}", shell=True) # this will be i2cdetect output
-		return result_text
+    try:
+        result = subprocess.run(
+            ["sudo", "i2cdetect", "-y", str(busnum)],
+            capture_output=True,
+            text=True,  # ensures stdout is a string
+            check=True  # raises CalledProcessError on failure
+        )
+        return result.stdout
 
-	except subprocess.CalledProcessError as e:
-		# handle errors: display error message, return -1
-		print(e.stderr)
-		return -1
+    except subprocess.CalledProcessError as e:
+        print("Error during i2cdetect:")
+        print(e.stderr)
+        return -1
 
-	except FileNotFoundError:
-		# handle errors: dissplay error message, return -1
-		print("The specified file could not be found")
-		return -1
+    except FileNotFoundError:
+        print("i2cdetect command not found.")
+        return -1
 
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
@@ -108,6 +120,7 @@ def get_devices(adds):
 	for num in adds:
 		if num == tsl2591:
 			detected_sensors.append("TSL2591")
+			logging.info('TSL2591 detected.')
 	
 	return detected_sensors
 
