@@ -12,6 +12,7 @@ import spidev # For interfacing with SPI devices from user space via the spidev 
 import RPi.GPIO as GPIO
 import subprocess
 import logging
+import re
 
 #*****************************************************#
 #This section is for SPI detection
@@ -68,7 +69,7 @@ read_BME()
 
 # Hardcoded address dictionary for sensors
 addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
-	"TSL2591": 29,
+	"TSL2591": 0x29,
 	"BME280": 00,
 	"PIR" : 00
 }
@@ -112,15 +113,13 @@ def get_devices(adds):
 
 	detected_sensors = []
 
-	# parse through i2cdetect output, match aadresses to dictionary, add found addresses to detected_sensors #
+	address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+	found_addrs = [int(addr, 16) for addr in address_matches]
 
-	########################################################################################################
-	tsl2591 = addr_table["TSL2591"]
-	
-	for num in adds:
-		if num == tsl2591:
-			detected_sensors.append("TSL2591")
-			logging.info('TSL2591 detected.')
+	for sensor_name, sensor_addr in addr_table.items():
+		if sensor_addr in found_addrs:
+			detected_sensors.append(sensor_name)
+			logging.info(f'{sensor_name} detected.')
 	
 	return detected_sensors
 
