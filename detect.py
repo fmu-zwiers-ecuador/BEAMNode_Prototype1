@@ -11,6 +11,8 @@
 import spidev # For interfacing with SPI devices from user space via the spidev linux kernel driver.
 import RPi.GPIO as GPIO
 import subprocess
+import logging
+import re
 
 #*****************************************************#
 #This section is for SPI detection
@@ -67,28 +69,39 @@ read_BME()
 
 # Hardcoded address dictionary for sensors
 addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
-	"TSL2591": 29,
+	"TSL2591": 0x29,
 	"BME280": 00,
 	"PIR" : 00
 }
 
+#Basic logging configurations for the TSL2591
+logging.basicConfig(
+    filename='detect_tsl2591.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filemode='w'
+)
+
 # Function1 - scan_i2c(busnum) - Run i2c detect on selected bus and return
 # string with i2c output
 def scan_i2c(busnum):
-	# Set up subprocess call
-	try:
-		result_text = subprocess.run(f"sudo i2cdetect -y {busnum}", shell=True) # this will be i2cdetect output
-		return result_text
+    try:
+        result = subprocess.run(
+            ["sudo", "i2cdetect", "-y", str(busnum)],
+            capture_output=True,
+            text=True,  # ensures stdout is a string
+            check=True  # raises CalledProcessError on failure
+        )
+        return result.stdout
 
-	except subprocess.CalledProcessError as e:
-		# handle errors: display error message, return -1
-		print(e.stderr)
-		return -1
+    except subprocess.CalledProcessError as e:
+        print("Error during i2cdetect:")
+        print(e.stderr)
+        return -1
 
-	except FileNotFoundError:
-		# handle errors: dissplay error message, return -1
-		print("The specified file could not be found")
-		return -1
+    except FileNotFoundError:
+        print("i2cdetect command not found.")
+        return -1
 
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
@@ -100,14 +113,13 @@ def get_devices(adds):
 
 	detected_sensors = []
 
-	# parse through i2cdetect output, match aadresses to dictionary, add found addresses to detected_sensors #
+	address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+	found_addrs = [int(addr, 16) for addr in address_matches]
 
-	########################################################################################################
-	tsl2591 = addr_table["TSL2591"]
-	
-	for num in adds:
-		if num == tsl2591:
-			detected_sensors.append("TSL2591")
+	for sensor_name, sensor_addr in addr_table.items():
+		if sensor_addr in found_addrs:
+			detected_sensors.append(sensor_name)
+			logging.info(f'{sensor_name} detected.')
 	
 	return detected_sensors
 
