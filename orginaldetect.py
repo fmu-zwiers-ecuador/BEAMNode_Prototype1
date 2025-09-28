@@ -1,3 +1,6 @@
+import spidev 
+import RPi.GPIO as GPIO
+
 CS_PIN = 5
 
 GPIO.setmode(GPIO.BCM)
@@ -25,3 +28,7 @@ try:
 finally:
     spi.close()
     GPIO. cleanup()
+
+
+
+
