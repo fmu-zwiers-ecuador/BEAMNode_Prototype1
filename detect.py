@@ -22,6 +22,16 @@ import re
 # CS_PIN = 5, 9, 10, 11 is BME
 # CS_PIN = 2, 3 is TSL2591
 
+# ---------------------------
+# SPI LOGGER (BME/BMP280)
+# ---------------------------
+spi_logger = logging.getLogger("detect_bme280")
+spi_logger.setLevel(logging.INFO)
+_spi_fh = logging.FileHandler("detect_bme280.log", mode="a")
+_spi_fh.setFormatter(logging.Formatter("%(name)s %(levelname)s %(message)s"))
+spi_logger.addHandler(_spi_fh)
+spi_logger.propagate = False  # keep it out of root logger
+
 def spi_init(cs_pin):
 	GPIO.setmode(GPIO.BCM) #Sets the numbering system for the GPIO
 	GPIO.setup(cs_pin, GPIO.OUT, initial=GPIO.HIGH) #Sets up GPIO an initializes it to inactive
@@ -43,6 +53,7 @@ def read_chip_ID(spi, reg, cs_pin):
 	Returns:
 		The memory address from the CS_PIN
 	"""
+	
 	GPIO.output(cs_pin, 0)
 	response = spi.xfer2([reg | 0x80, 0x00]) [1]
 	GPIO.output(cs_pin, 1)
@@ -52,14 +63,27 @@ def read_BME():
 	CS_PIN = 5
 	spi = spi_init(CS_PIN)
 	try:
+		spi_logger.info("Starting BME/BMP280 chip-ID read (SPI mode=0, 1MHz, CS=GPIO5)")
 		chip = read_chip_ID(spi, 0xD0, 5)
 		if chip in (0x60, 0x58):
+			which = "BME280" if chip == 0x60 else "BMP280"
+
+			msg = f"Chip ID: 0x{chip:02X} ({which})"
 			print(f"Chip ID: 0x{chip:02x} ({'BME280' if chip==0x60 else 'BMP280'})")
+			spi_logger.info(msg)
 		else:
+			msg = f"Chip ID: 0x{chip:02X} (unexpected; check CS/wiring/mode)"
 			print(f"Chip ID: 0x{chip:02x} (unexpected; check wiring)")
+			spi_logger.warning(msg)
+
+				
+	except Exception as e:
+		spi_logger.exception(f"SPI detection failed: {e}")
+		raise
 	finally:
 		spi.close()
 		GPIO.cleanup()
+		spi_logger.info("SPI closed and GPIO cleaned up.")
 
 read_BME()
 
