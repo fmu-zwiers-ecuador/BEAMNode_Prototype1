@@ -19,11 +19,11 @@ directory = "data/tsl2591/"
 os.makedirs(directory, exist_ok=True)
     
 lux_json_data = {
-    "date": datetime.now().isoformat(),
-    "lux": lux
+    "Date": datetime.now().isoformat(),
+    "Lux value": lux
 }
 
-file_name = f"hourly_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+file_name = f"lux_data.json"
 file_path = os.path.join(directory, file_name)
 
 try:
