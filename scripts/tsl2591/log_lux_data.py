@@ -13,8 +13,7 @@ sensor = adafruit_tsl2591.TSL2591(i2c)
 # Read and calculate the light level in lux.
 lux = sensor.lux
 
-directory = "data/tsl2591/"
-
+directory = "data/tsl2591/" 
 # Create directory if it does not exist
 os.makedirs(directory, exist_ok=True)
     
