@@ -17,18 +17,31 @@ directory = "data/tsl2591/"
 
 # Create directory if it does not exist
 os.makedirs(directory, exist_ok=True)
-    
+
+file_name = f"lux_data.json"
+file_path = os.path.join(directory, file_name)
+
 lux_json_data = {
     "Date": datetime.now().isoformat(),
     "Lux value": lux
 }
 
-file_name = f"lux_data.json"
-file_path = os.path.join(directory, file_name)
-
 try:
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as json_file:
+            data = json.load(json_file)
+            if not isinstance(data, list):
+                data = []  # Reset if data is not a list
+    else:
+        data = []
+
+    # Append the new data
+    data.append(lux_json_data)
+
+    # Save back to the file
     with open(file_path, 'w') as json_file:
-        json.dump(lux_json_data, json_file, indent=4)
-    print(f"Lux data saved to {file_name} at {datetime.now()}")
+        json.dump(data, json_file, indent=4)
+
+    print(f"Lux data appended to {file_name} at {datetime.now()}")
 except Exception as e:
      print(f"Error saving lux data: {e}")
