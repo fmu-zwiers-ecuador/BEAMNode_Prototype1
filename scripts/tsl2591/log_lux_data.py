@@ -20,8 +20,8 @@ lux_json_data = {
 file_name = f"hourly_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
 try:
-    with open(f"data/tsl5291/{file_name}", 'w') as f:
+    with open(f"data/tsl2591/{file_name}", 'w') as f:
         json.dump(lux_json_data, f, indent=4)
-        print(f"Lux data saved to {file_name} at {datetime.now()}")
+    print(f"Lux data saved to {file_name} at {datetime.now()}")
 except Exception as e:
      print(f"Error saving lux data: {e}")
