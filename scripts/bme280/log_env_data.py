@@ -6,6 +6,8 @@ import adafruit_bme280
 import json
 from datetime import datetime
 import os
+from adafruit_bme280 import Adafruit_BME280_SPI #forced import
+import board, busio, digitalio
 
 # SPI Setup
 # GPIO5 = physical pin 29 for Chip Select
