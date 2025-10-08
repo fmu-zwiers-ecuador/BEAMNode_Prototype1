@@ -5,10 +5,10 @@
   },
   "tsl2591": {
     "enabled": false,
-    "directory": "tsl2591"
+    "directory": "/home/pi/data/tsl2591/"
   },
   "bme280": {
     "enabled": false,
-    "directory": "bme280"
+    "directory": "/home/pi/data/bme280"
   }
 }
