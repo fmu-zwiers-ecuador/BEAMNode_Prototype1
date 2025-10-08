@@ -1,46 +1,72 @@
-import spidev   # SPI low-level handling (required when using SPI)
-import board
-import busio
-import digitalio
-import adafruit_bme280
+
+import spidev   
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
-# SPI Setup
-# GPIO5 = physical pin 29 for Chip Select
+from adafruit_bme280 import basic  # <-- import for initialization over SPI to work
+import board, busio
+from digitalio import DigitalInOut
+
+# SPI Setup GPIO5 = physical pin 29 for Chip Select
 CS_PIN = board.D5
 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-cs = digitalio.DigitalInOut(CS_PIN)
+cs  = DigitalInOut(CS_PIN)
 
-# Initialize the BME280 sensor over SPI
-sensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
+# Initialize the BME280 sensor over SPI 
+sensor = basic.Adafruit_BME280_SPI(spi, cs, baudrate=100000)
 
 # Read sensor values
-temperature = sensor.temperature
-humidity = sensor.humidity
-pressure = sensor.pressure
+temperature = float(sensor.temperature)
+humidity    = float(sensor.humidity)
+pressure    = float(sensor.pressure)
 
 # Directory for saving logs
-directory = "data/bme280/"
+directory = "/home/pi/data/bme280/"
 os.makedirs(directory, exist_ok=True)
 
-# Data object for JSON
-env_json_data = {
-    "Date": datetime.now().isoformat(),
-    "Temperature_C": temperature,
-    "Humidity_percent": humidity,
-    "Pressure_hPa": pressure
-}
-
-# Writing to the same file
-file_name = "env_data.jsonl"   # JSON Lines format
+# Target file (single JSON with a "records" array)
+file_name = "env_data.json"
 file_path = os.path.join(directory, file_name)
 
+# New record
+env_json_data = {
+    "timestamp": datetime.now(timezone.utc).isoformat(),
+    "temperature_C": temperature,
+    "humidity_percent": humidity,
+    "pressure_hPa": pressure
+}
+
 try:
-    with open(file_path, "a") as json_file:   # < append
-        json.dump(env_json_data, json_file)
-        json_file.write("\n")                 # newline after each JSON object
+    # Attempt to load existing data if it exist, create a new dict if not
+    if os.path.exists(file_path):
+        with open(file_path, "r") as json_file:
+            try:
+                data = json.load(json_file)
+                if not isinstance(data, dict) or "records" not in data:
+                    data = {
+                        "node_id": "beam-node-01",
+                        "sensor": "bme280",
+                        "records": []
+                    }
+            except Exception:
+                data = {
+                    "node_id": "beam-node-01",
+                    "sensor": "bme280",
+                    "records": []
+                }
+    else:
+        data = {
+            "node_id": "beam-node-01",
+            "sensor": "bme280",
+            "records": []
+        }
+
+    # Append and write back
+    data["records"].append(env_json_data)
+    with open(file_path, "w") as json_file:
+        json.dump(data, json_file, indent=4)
+
     print(f"Env data appended to {file_name} at {datetime.now()}")
 except Exception as e:
     print(f"Error saving env data: {e}")

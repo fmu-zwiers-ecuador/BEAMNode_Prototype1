@@ -1,0 +1,16 @@
+{
+  "global": {
+    "node_id": "beam-node-01",
+    "data_dir": "data"
+  },
+  "tsl2591": {
+    "enabled": false,
+    "directory": "tsl2591",
+    "file_name": "lux_data.json"
+  },
+  "bme280": {
+    "enabled": false,
+    "directory": "bme280",
+    "file_name": "env_data.jsonl"
+  }
+}
