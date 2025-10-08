@@ -9,6 +9,6 @@
   },
   "bme280": {
     "enabled": false,
-    "directory": "/home/pi/data/bme280"
+    "directory": "/home/pi/data/bme280/"
   }
 }
