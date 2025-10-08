@@ -14,7 +14,7 @@ sensor = adafruit_tsl2591.TSL2591(i2c)
 lux = sensor.lux
 
 # Initializes directory where data will be stored
-directory = "data/tsl2591/"
+directory = "/home/pi/data/tsl2591/"
 
 # Create directory if it does not exist
 os.makedirs(directory, exist_ok=True)
