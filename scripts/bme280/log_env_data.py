@@ -22,7 +22,7 @@ humidity    = float(sensor.humidity)
 pressure    = float(sensor.pressure)
 
 # Directory for saving logs
-directory = "data/bme280/"
+directory = "/home/pi/data/bme280/"
 os.makedirs(directory, exist_ok=True)
 
 # Target file (single JSON with a "records" array)
