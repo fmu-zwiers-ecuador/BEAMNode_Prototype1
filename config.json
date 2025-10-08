@@ -5,12 +5,10 @@
   },
   "tsl2591": {
     "enabled": false,
-    "directory": "tsl2591",
-    "file_name": "lux_data.json"
+    "directory": "tsl2591"
   },
   "bme280": {
     "enabled": false,
-    "directory": "bme280",
-    "file_name": "env_data.jsonl"
+    "directory": "bme280"
   }
 }
