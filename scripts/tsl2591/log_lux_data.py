@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 import os
 
-# Determine project root dynamically (two levels up from this script)
+# Determine project root dynamically
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Load config
@@ -14,16 +14,20 @@ with open(config_path, "r") as f:
 
 tsl_config = config["tsl2591"]
 global_config = config["global"]
+
+# Check if sensor is enabled
+if not tsl_config.get("enabled", True):
+    exit(0)
+
 node_id = global_config.get("node_id", "unknown-node")
 
-# Directory and file for logs (relative to base_dir)
+# Directory and file for logs
 directory = os.path.join(global_config.get("base_dir", os.path.join(project_root, "data")), tsl_config.get("directory", "tsl2591"))
 os.makedirs(directory, exist_ok=True)
 file_name = tsl_config.get("file_name", "lux_data.json")
 file_path = os.path.join(directory, file_name)
 
 # Initialize sensor
-i2c_bus = tsl_config.get("i2c_bus", 1)
 i2c = board.I2C()
 sensor = adafruit_tsl2591.TSL2591(i2c)
 
