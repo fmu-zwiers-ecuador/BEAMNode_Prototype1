@@ -1,14 +1,38 @@
 {
   "global": {
     "node_id": "beam-node-01",
-    "data_dir": "data"
+    "base_dir": "/home/pi/data",
+    "timezone": "UTC",
+    "print_debug": true
   },
+
   "tsl2591": {
-    "enabled": false,
-    "directory": "/home/pi/data/tsl2591/"
+    "enabled": true,
+    "directory": "tsl2591",
+    "file_name": "lux_data.json",
+    "i2c_bus": 1,
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "lux": "float"
+    }
   },
+
   "bme280": {
-    "enabled": false,
-    "directory": "/home/pi/data/bme280/"
+    "enabled": true,
+    "directory": "bme280",
+    "file_name": "env_data.json",
+    "spi": {
+      "sck_pin": "SCK",
+      "mosi_pin": "MOSI",
+      "miso_pin": "MISO",
+      "cs_pin": "D5",
+      "baudrate": 100000
+    },
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "temperature_C": "float",
+      "humidity_percent": "float",
+      "pressure_hPa": "float"
+    }
   }
 }
