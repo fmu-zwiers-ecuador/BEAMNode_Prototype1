@@ -3,3 +3,7 @@
 # install bme280 library
 sudo pip3 install adafruit-circuitpython-bme280 --break-system-packages
 
+# install camera module
+
+sudo apt install picamzero --break-system-packages
+
