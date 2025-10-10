@@ -1,32 +1,43 @@
-
-import spidev   
+import spidev
 import json
 from datetime import datetime, timezone
 import os
 
-from adafruit_bme280 import basic  # <-- import for initialization over SPI to work
+from adafruit_bme280 import basic
 import board, busio
 from digitalio import DigitalInOut
 
-# SPI Setup GPIO5 = physical pin 29 for Chip Select
-CS_PIN = board.D5
+# Determine project root dynamically (two levels up from this script)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+# Load config
+config_path = os.path.join(project_root, "config.json")
+with open(config_path, "r") as f:
+    config = json.load(f)
+
+bme_config = config["bme280"]
+global_config = config["global"]
+node_id = global_config.get("node_id", "unknown-node")
+
+# SPI Pins
+spi_config = bme_config.get("spi", {})
+CS_PIN = getattr(board, spi_config.get("cs_pin", "D5"))
 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 cs  = DigitalInOut(CS_PIN)
 
-# Initialize the BME280 sensor over SPI 
-sensor = basic.Adafruit_BME280_SPI(spi, cs, baudrate=100000)
+# Initialize BME280
+baudrate = spi_config.get("baudrate", 100000)
+sensor = basic.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
-# Read sensor values
+# Read values
 temperature = float(sensor.temperature)
-humidity    = float(sensor.humidity)
-pressure    = float(sensor.pressure)
+humidity = float(sensor.humidity)
+pressure = float(sensor.pressure)
 
-# Directory for saving logs
-directory = "/home/pi/data/bme280/"
+# Directory and file for logs (relative to base_dir)
+directory = os.path.join(global_config.get("base_dir", os.path.join(project_root, "data")), bme_config.get("directory", "bme280"))
 os.makedirs(directory, exist_ok=True)
-
-# Target file (single JSON with a "records" array)
-file_name = "env_data.json"
+file_name = bme_config.get("file_name", "env_data.json")
 file_path = os.path.join(directory, file_name)
 
 # New record
@@ -37,36 +48,25 @@ env_json_data = {
     "pressure_hPa": pressure
 }
 
+# Append to JSON
 try:
-    # Attempt to load existing data if it exist, create a new dict if not
     if os.path.exists(file_path):
-        with open(file_path, "r") as json_file:
+        with open(file_path, "r") as f:
             try:
-                data = json.load(json_file)
+                data = json.load(f)
                 if not isinstance(data, dict) or "records" not in data:
-                    data = {
-                        "node_id": "beam-node-01",
-                        "sensor": "bme280",
-                        "records": []
-                    }
+                    data = {"node_id": node_id, "sensor": "bme280", "records": []}
             except Exception:
-                data = {
-                    "node_id": "beam-node-01",
-                    "sensor": "bme280",
-                    "records": []
-                }
+                data = {"node_id": node_id, "sensor": "bme280", "records": []}
     else:
-        data = {
-            "node_id": "beam-node-01",
-            "sensor": "bme280",
-            "records": []
-        }
+        data = {"node_id": node_id, "sensor": "bme280", "records": []}
 
-    # Append and write back
     data["records"].append(env_json_data)
-    with open(file_path, "w") as json_file:
-        json.dump(data, json_file, indent=4)
 
-    print(f"Env data appended to {file_name} at {datetime.now()}")
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    if global_config.get("print_debug", True):
+        print(f"Env data appended to {file_name} at {datetime.now(timezone.utc)}")
 except Exception as e:
     print(f"Error saving env data: {e}")
