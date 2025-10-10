@@ -7,7 +7,7 @@ from adafruit_bme280 import basic
 import board, busio
 from digitalio import DigitalInOut
 
-# Determine project root dynamically (two levels up from this script)
+# Determine project root dynamically
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Load config
@@ -17,6 +17,11 @@ with open(config_path, "r") as f:
 
 bme_config = config["bme280"]
 global_config = config["global"]
+
+# Check if sensor is enabled
+if not bme_config.get("enabled", True):
+    exit(0)
+
 node_id = global_config.get("node_id", "unknown-node")
 
 # SPI Pins
@@ -34,7 +39,7 @@ temperature = float(sensor.temperature)
 humidity = float(sensor.humidity)
 pressure = float(sensor.pressure)
 
-# Directory and file for logs (relative to base_dir)
+# Directory and file for logs
 directory = os.path.join(global_config.get("base_dir", os.path.join(project_root, "data")), bme_config.get("directory", "bme280"))
 os.makedirs(directory, exist_ok=True)
 file_name = bme_config.get("file_name", "env_data.json")
