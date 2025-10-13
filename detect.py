@@ -14,6 +14,10 @@ import subprocess
 import logging
 import re
 
+import json
+CONFIG_PATH = "/home/pi/config.json"
+
+
 #*****************************************************#
 #This section is for SPI detection
 #*****************************************************#
@@ -71,6 +75,23 @@ def read_BME():
 			msg = f"Chip ID: 0x{chip:02X} ({which})"
 			print(f"Chip ID: 0x{chip:02x} ({'BME280' if chip==0x60 else 'BMP280'})")
 			spi_logger.info(msg)
+			# flip bme280.enabled in config when detected
+			try:
+				try:
+					with open(CONFIG_PATH, "r") as f:
+						cfg = json.load(f)
+				except Exception:
+					cfg = {}
+				if "bme280" not in cfg or not isinstance(cfg["bme280"], dict):
+					cfg["bme280"] = {}
+				cfg["bme280"]["enabled"] = True
+				with open(CONFIG_PATH, "w") as f:
+					json.dump(cfg, f, indent=2)
+				spi_logger.info("Updated config: set bme280.enabled = true")
+			except Exception as e:
+				spi_logger.exception(f"Failed to update config to enable bme280: {e}")
+			# end of new config detection
+
 		else:
 			msg = f"Chip ID: 0x{chip:02X} (unexpected; check CS/wiring/mode)"
 			print(f"Chip ID: 0x{chip:02x} (unexpected; check wiring)")
@@ -86,6 +107,27 @@ def read_BME():
 		spi_logger.info("SPI closed and GPIO cleaned up.")
 
 read_BME()
+
+#*****************************************************#
+# This section is for Camera detection
+# Detect IMX219 using Picamera2
+#*****************************************************#
+from picamera2 import Picamera2
+
+def detect_imx219_picamera2():
+    try:
+        cams = Picamera2.global_camera_info()  # list of dicts
+        # Look for a camera model string containing "imx219"
+        for c in cams:
+            model = (c.get("Model") or c.get("model") or "").lower()
+            if "imx219" in model:
+                return True, f"Found camera: {c}"
+        return False, f"No IMX219 found. Cameras: {cams}"
+    except Exception as e:
+        return False, f"Picamera2 unavailable or failed: {e}"
+
+ok, info = detect_imx219_picamera2()
+print(ok, info)
 
 #*****************************************************#
 #This section is for I2C detection
