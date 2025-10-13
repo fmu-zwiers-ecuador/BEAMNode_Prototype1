@@ -2,8 +2,7 @@
 {
   "node_id": "node_id",
   "sensor": "sensor_used",
-  # Next step will vary depending on sensor used, keep syntax ('{}'s and '[]'s) consistent.
-
+  ## Next step will vary depending on sensor used, keep syntax ('{}'s and '[]'s) consistent. ##
   "records" : [
     {
         "timestamp" : "time_recorded",
