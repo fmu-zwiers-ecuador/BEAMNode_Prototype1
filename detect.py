@@ -136,8 +136,8 @@ print(ok, info)
 # Hardcoded address dictionary for sensors
 addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
 	"TSL2591": 0x29,
-	"BME280": 00,
-	"PIR" : 00
+	#"BME280": 00,
+	#"PIR" : 00
 }
 
 #Basic logging configurations for the TSL2591
