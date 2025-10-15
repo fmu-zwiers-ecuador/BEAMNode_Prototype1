@@ -18,7 +18,7 @@
   },
 
   "bme280": {
-    "enabled": true,
+    "enabled": false,
     "directory": "bme280",
     "file_name": "env_data.json",
     "spi": {

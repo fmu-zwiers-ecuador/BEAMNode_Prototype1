@@ -43,6 +43,10 @@ def spi_init(cs_pin):
 	spi.open(0, 0)  # Open SPI bus 0, device 0
 	spi.max_speed_hz = 1000000
 	spi.mode = 0
+	try:
+		spi.no_cs = True  # prevents CE0/CE1 from being driven by spidev
+	except AttributeError:
+		spi_logger.warning("spidev.no_cs not available; consider updating python-spidev")
 	return spi  
 
 def read_chip_ID(spi, reg, cs_pin):
@@ -68,7 +72,11 @@ def read_BME():
 	spi = spi_init(CS_PIN)
 	try:
 		spi_logger.info("Starting BME/BMP280 chip-ID read (SPI mode=0, 1MHz, CS=GPIO5)")
-		chip = read_chip_ID(spi, 0xD0, 5)
+		chip1 = read_chip_ID(spi, 0xD0, CS_PIN)
+		import time  # ADDED: tiny delay between reads
+		time.sleep(0.002)  # ADDED
+		chip2 = read_chip_ID(spi, 0xD0, CS_PIN)  # ADDED
+		chip = chip1 if chip1 == chip2 else 0x00  # ADDED: require stable ID
 		if chip in (0x60, 0x58):
 			which = "BME280" if chip == 0x60 else "BMP280"
 
