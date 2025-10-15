@@ -23,7 +23,7 @@ CHUNK = 1024             # buffer size
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Filename + timestamp
-timestamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+timestamp = datetime.now(timezone.utc).isoformat(),
 wav_filename = os.path.join(OUTPUT_DIR, f"recording_{timestamp}.wav")
 
 # Init PyAudio
