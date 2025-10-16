@@ -13,10 +13,28 @@ import RPi.GPIO as GPIO
 import subprocess
 import logging
 import re
-
+import os, time, json, logging, spidev, RPi.GPIO as GPIO
 import json
 CONFIG_PATH = "/home/pi/config.json"
+def set_config_flag(path, section, key, value):
+    """Safely set a boolean flag in config.json without touching anything else."""
+    try:
+        with open(path, "r") as f:
+            cfg = json.load(f)
+    except Exception:
+        cfg = {}
 
+    if section not in cfg or not isinstance(cfg[section], dict):
+        cfg[section] = {}
+
+    # Only update if it isn't already the desired value
+    if cfg[section].get(key) is not value:
+        cfg[section][key] = value
+        # Atomic-ish write to avoid partial files on power loss
+        tmp_path = f"{path}.tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(cfg, f, indent=2)
+        os.replace(tmp_path, path)
 
 #*****************************************************#
 #This section is for SPI detection
@@ -35,6 +53,7 @@ _spi_fh = logging.FileHandler("detect_bme280.log", mode="a")
 _spi_fh.setFormatter(logging.Formatter("%(name)s %(levelname)s %(message)s"))
 spi_logger.addHandler(_spi_fh)
 spi_logger.propagate = False  # keep it out of root logger
+
 
 def spi_init(cs_pin):
 	GPIO.setmode(GPIO.BCM) #Sets the numbering system for the GPIO
@@ -68,6 +87,7 @@ def read_chip_ID(spi, reg, cs_pin):
 	return response
 
 def read_BME():
+
 	CS_PIN = 5
 	spi = spi_init(CS_PIN)
 	try:
@@ -84,20 +104,7 @@ def read_BME():
 			print(f"Chip ID: 0x{chip:02x} ({'BME280' if chip==0x60 else 'BMP280'})")
 			spi_logger.info(msg)
 			# flip bme280.enabled in config when detected
-			try:
-				try:
-					with open(CONFIG_PATH, "r") as f:
-						cfg = json.load(f)
-				except Exception:
-					cfg = {}
-				if "bme280" not in cfg or not isinstance(cfg["bme280"], dict):
-					cfg["bme280"] = {}
-				cfg["bme280"]["enabled"] = True
-				with open(CONFIG_PATH, "w") as f:
-					json.dump(cfg, f, indent=2)
-				spi_logger.info("Updated config: set bme280.enabled = true")
-			except Exception as e:
-				spi_logger.exception(f"Failed to update config to enable bme280: {e}")
+			set_config_flag(CONFIG_PATH, "bme280", "enabled", True)
 			# end of new config detection
 
 		else:
@@ -130,6 +137,7 @@ def detect_imx219_picamera2():
             model = (c.get("Model") or c.get("model") or "").lower()
             if "imx219" in model:
                 return True, f"Found camera: {c}"
+            
         return False, f"No IMX219 found. Cameras: {cams}"
     except Exception as e:
         return False, f"Picamera2 unavailable or failed: {e}"
@@ -201,3 +209,5 @@ i2coutput = scan_i2c(1) # i2c output for bus 1
 devices = get_devices(i2coutput)
 
 print(f"The following sensors are online: {devices}")
+if isinstance(devices, list) and "TSL2591" in devices:
+    set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)
