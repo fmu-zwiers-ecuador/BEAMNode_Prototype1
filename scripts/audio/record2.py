@@ -6,7 +6,7 @@
 import os
 import json
 import time
-import datetime
+from datetime import datetime, timezone
 import wave
 import pyaudio
 
@@ -23,7 +23,7 @@ CHUNK = 1024             # buffer size
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Filename + timestamp
-timestamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+timestamp = datetime.now(timezone.utc).isoformat(),
 wav_filename = os.path.join(OUTPUT_DIR, f"recording_{timestamp}.wav")
 
 # Init PyAudio
@@ -54,7 +54,7 @@ print(f"[BEAM] Saved audio: {wav_filename}")
 
 # Metadata for log
 record = {
-    "time": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "time": datetime.now(timezone.utc).isoformat(),
     "file": wav_filename,
     "duration_sec": DURATION,
     "sample_rate": RATE,
