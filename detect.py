@@ -15,7 +15,7 @@ import logging
 import re
 import os, time, json, logging, spidev, RPi.GPIO as GPIO
 import json
-CONFIG_PATH = "/home/pi/config.json"
+CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
 def set_config_flag(path, section, key, value):
     """Safely set a boolean flag in config.json without touching anything else."""
     try:
