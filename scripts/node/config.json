@@ -36,6 +36,18 @@
     }
   },
 
+  "ahtx0": {
+    "enabled": true,
+    "directory": "ahtx0",
+    "file_name": "env_data.json",
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "temperature_C": "float",
+      "humidity_percent": "float",
+      "pressure_hPa": "float|null"
+    }
+  },
+
   "audio": {
     "enabled": true,
     "directory": "audio",
