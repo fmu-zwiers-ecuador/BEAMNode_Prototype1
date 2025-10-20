@@ -65,5 +65,19 @@
       "channels": "int",
       "format": "string"
     }
+  },
+
+  "camera": {
+    "enabled": true,
+    "directory": "camera",
+    "file_prefix": "motionpic_",
+    "resolution": [1920, 1080],
+    "lores_resolution": [640, 480],
+    "gpio_pin": 4,
+    "cooldown_sec": 1,
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "file": "string"
+    }
   }
 }
