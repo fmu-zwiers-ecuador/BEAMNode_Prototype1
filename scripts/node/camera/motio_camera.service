@@ -1,0 +1,13 @@
+[Unit]
+Description=BEAM Motion-Triggered Camera
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/BEAMNode_Prototype1/scripts/camera/motion_camera.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

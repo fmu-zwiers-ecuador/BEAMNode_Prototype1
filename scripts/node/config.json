@@ -34,5 +34,50 @@
       "humidity_percent": "float",
       "pressure_hPa": "float"
     }
+  },
+
+  "ahtx0": {
+    "enabled": true,
+    "directory": "ahtx0",
+    "file_name": "env_data.json",
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "temperature_C": "float",
+      "humidity_percent": "float",
+      "pressure_hPa": "float|null"
+    }
+  },
+
+  "audio": {
+    "enabled": true,
+    "directory": "audio",
+    "file_prefix": "recording_",
+    "duration_sec": 10,
+    "sample_rate": 48000,
+    "channels": 1,
+    "format": "int16",
+    "chunk": 1024,
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "file": "path",
+      "duration_sec": "int",
+      "sample_rate": "int",
+      "channels": "int",
+      "format": "string"
+    }
+  },
+
+  "camera": {
+    "enabled": true,
+    "directory": "camera",
+    "file_prefix": "motionpic_",
+    "resolution": [1920, 1080],
+    "lores_resolution": [640, 480],
+    "gpio_pin": 4,
+    "cooldown_sec": 1,
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "file": "string"
+    }
   }
 }
