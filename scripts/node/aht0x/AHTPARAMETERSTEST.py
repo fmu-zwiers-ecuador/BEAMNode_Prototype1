@@ -1,8 +1,7 @@
 import json
 from datetime import datetime, timezone
 import os
-import requests 
-
+# Removed: import requests (no longer needed for config fetching)
 
 try:
     import board
@@ -13,20 +12,18 @@ except ImportError as e:
     print(f"ERROR: Failed to import hardware library: {e}. Ensure 'board' and 'adafruit_ahtx0' are installed.")
 
 
-
-
 # -----------------------------
-# Configuration URL and Loading 
+# Configuration File Path and Loading 
 # -----------------------------
-CONFIG_URL = "https://raw.githubusercontent.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/main/scripts/node/config.json"
+CONFIG_FILE = "config.json"
 
 
 def get_config_data():
     """
-    Fetches configuration from the remote CONFIG_URL using HTTP GET request.
-    Uses a robust default structure if fetching or parsing fails.
+    Loads configuration from the local CONFIG_FILE.
+    Uses a robust default structure if the file is missing or parsing fails.
     """
-   
+    
     # Robust default structure for fallback
     default_config = {
         "node_id": "beam-node-01-default",
@@ -40,31 +37,25 @@ def get_config_data():
         }
     }
 
-
-    print(f"INFO: Attempting to load config from remote source: {CONFIG_URL}")
-   
+    print(f"INFO: Attempting to load config from local file: {CONFIG_FILE}")
+    
     try:
-        # Use requests to fetch the content from the URL
-        response = requests.get(CONFIG_URL, timeout=10)
-        response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
-       
-        # Parse the JSON content
-        config = response.json()
-        print("INFO: Configuration fetched and parsed successfully.")
+        # Open and load the JSON content from the local file
+        with open(CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+        
+        print("INFO: Configuration loaded successfully from local file.")
         return config
 
-
-    except requests.exceptions.RequestException as e:
-        print(f"ERROR: Failed to fetch configuration from URL: {e}. Using default settings.")
+    except FileNotFoundError:
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Using default settings.")
         return default_config
     except json.JSONDecodeError:
-        print(f"ERROR: Fetched data is not valid JSON. Using default settings.")
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Using default settings.")
         return default_config
     except Exception as e:
         print(f"ERROR: An unexpected error occurred during config loading: {e}. Using default settings.")
         return default_config
-
-
 
 
 # Load Configuration and get AHTx0 specific parameters
@@ -80,8 +71,6 @@ temp_offset = ahtx0_params.get("temperature_offset", 0.0)
 hum_offset = ahtx0_params.get("humidity_offset", 0.0)
 
 
-
-
 # -----------------------------
 # Initialize the AHTx0 sensor and read values
 # -----------------------------
@@ -89,25 +78,20 @@ try:
     i2c = board.I2C()  # uses board.SCL and board.SDA
     sensor = adafruit_ahtx0.AHTx0(i2c)
 
-
     # Read raw sensor values
     temperature = float(sensor.temperature)
     humidity = float(sensor.relative_humidity)
     pressure = None  # AHTx0 has no pressure sensor
 
-
     # Apply calibration offsets from the config file
     temperature += temp_offset
     humidity += hum_offset
-
 
 except Exception as e:
     print(f"CRITICAL ERROR: Sensor initialization failed: {e}. Check wiring and I2C connection. Using zeroed data.")
     temperature = 0.0
     humidity = 0.0
     pressure = None
-
-
 
 
 # -----------------------------
@@ -121,14 +105,12 @@ env_json_data = {
 }
 
 
-
-
 # -----------------------------
 # Save to JSON file
 # -----------------------------
 try:
     data = {}
-   
+    
     # 1. Check if file exists and load it
     if os.path.exists(file_path):
         with open(file_path, "r") as json_file:
@@ -141,7 +123,6 @@ try:
                 print(f"ERROR: Could not read existing data: {e}")
                 data = {}
 
-
     # 2. Ensure the base structure is correct, using configured values
     if not isinstance(data, dict) or "records" not in data:
         data = {
@@ -149,31 +130,30 @@ try:
             "sensor": SENSOR_NAME,
             "records": []
         }
-   
+    
     # 3. Append the new record
     data["records"].append(env_json_data)
-   
+    
     # 4. Write the updated data back to the file
     with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
-
 
     print("-" * 50)
     print(f"AHTx0 Environmental Data Logger (Config Node: {NODE_ID})")
     print(f"Timestamp: {env_json_data['timestamp']}")
     # Only show raw vs final if offsets were actually applied
     if temp_offset != 0.0 or hum_offset != 0.0:
+        # Note: If sensor read failed, temp/hum are 0.0, so the difference calculation is accurate.
         print(f"Raw Temp: {(temperature - temp_offset):.2f}°C | Applied Offset: {temp_offset:.1f}°C")
         print(f"Final Temp: {temperature:.2f}°C")
         print(f"Raw Hum: {(humidity - hum_offset):.2f}% | Applied Offset: {hum_offset:.1f}%")
         print(f"Final Hum: {humidity:.2f}%")
     else:
         print(f"Temperature: {temperature:.2f}°C | Humidity: {humidity:.2f}% (No offset applied)")
-       
+        
     print(f"Pressure: {pressure if pressure is not None else 'N/A'}")
     print("-" * 50)
     print(f"SUCCESS: Data appended to configured file: {file_path}")
-
 
 except Exception as e:
     print(f"FATAL ERROR: Failed to process and save environment data: {e}")
