@@ -6,6 +6,10 @@ node1:
     MAC_address:
     IP_address:
 
+node2:
+    MAC_address: b8:27:eb:f5:7a:f9
+    IP_address: 192.168.1.2/24
+
 node3:
     MAC_address: b8:27:eb:8c:30:bc
     IP_address: 192.168.1.3/24
