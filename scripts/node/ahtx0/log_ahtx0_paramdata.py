@@ -16,7 +16,7 @@ except ImportError as e:
 # Configuration File Path and Loading
 # -----------------------------
 # Updated path to pull from the '/BEAMNode_Prototype1/scripts/node/' directory.
-CONFIG_FILE = "/BEAMNode_Prototype1/scripts/node/config.json"
+CONFIG_FILE = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
 
 
 def get_config_data():
