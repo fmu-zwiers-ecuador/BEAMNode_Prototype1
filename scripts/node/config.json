@@ -3,7 +3,14 @@
     "node_id": "beam-node-01",
     "base_dir": "/home/pi/data",
     "timezone": "UTC",
-    "print_debug": true
+    "print_debug": true,
+    "ip": {
+      "mode": "static",
+      "address": "10.20.0.1",
+      "netmask": "255.255.255.0",
+      "gateway": "10.20.0.254",
+      "interface": "wlan0"
+    }
   },
 
   "tsl2591": {
