@@ -131,12 +131,6 @@ try:
     with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
 
-    print("-" * 50)
-    print(f"AHTx0 Environmental Data Logger (Config Node: {NODE_ID})")
-    print(f"Timestamp: {env_json_data['timestamp']}")
-    print(f"Temperature: {temperature:.2f}°C | Humidity: {humidity:.2f}%")
-    print(f"Pressure: {pressure if pressure is not None else 'N/A'}")
-    print("-" * 50)
     print(f"SUCCESS: Data appended to configured file: {file_path}")
 
 except Exception as e:
