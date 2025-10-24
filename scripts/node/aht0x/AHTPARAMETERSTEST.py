@@ -6,7 +6,6 @@ try:
     # Attempt to import hardware libraries (required for running on RPi/sensor)
     import board
     import adafruit_ahtx0
-    print("INFO: Using real hardware libraries (board, adafruit_ahtx0).")
 except ImportError as e:
     # This block ensures the script can run locally even if hardware libraries aren't installed,
     # though it will halt later during sensor initialization.
@@ -16,7 +15,8 @@ except ImportError as e:
 # -----------------------------
 # Configuration File Path and Loading
 # -----------------------------
-CONFIG_FILE = "config.json"
+# Updated path to pull from the 'node' folder, as requested.
+CONFIG_FILE = "node/config.json"
 
 
 def get_config_data():
@@ -37,8 +37,6 @@ def get_config_data():
         }
     }
 
-    print(f"INFO: Attempting to load config from local file: {CONFIG_FILE}")
-
     try:
         # Open and load the JSON content from the local file
         with open(CONFIG_FILE, 'r') as f:
@@ -48,7 +46,8 @@ def get_config_data():
         return config
 
     except FileNotFoundError:
-        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found in the local directory. Using default settings.")
+        # Updated error message to indicate the expected path
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Ensure it is located in the 'node' subdirectory relative to the script's execution path. Using default settings.")
         return default_config
     except json.JSONDecodeError:
         print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Using default settings.")
@@ -133,6 +132,8 @@ try:
         json.dump(data, json_file, indent=4)
 
     print("-" * 50)
+    print(f"AHTx0 Environmental Data Logger (Config Node: {NODE_ID})")
+    print(f"Timestamp: {env_json_data['timestamp']}")
     print(f"Temperature: {temperature:.2f}°C | Humidity: {humidity:.2f}%")
     print(f"Pressure: {pressure if pressure is not None else 'N/A'}")
     print("-" * 50)
