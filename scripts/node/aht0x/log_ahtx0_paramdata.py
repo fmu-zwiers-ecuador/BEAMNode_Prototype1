@@ -6,6 +6,7 @@ try:
     # Attempt to import hardware libraries (required for running on RPi/sensor)
     import board
     import adafruit_ahtx0
+    print("INFO: Using real hardware libraries (board, adafruit_ahtx0).")
 except ImportError as e:
     # This block ensures the script can run locally even if hardware libraries aren't installed,
     # though it will halt later during sensor initialization.
@@ -15,8 +16,8 @@ except ImportError as e:
 # -----------------------------
 # Configuration File Path and Loading
 # -----------------------------
-# Updated path to pull from the 'node' folder, as requested.
-CONFIG_FILE = "node/config.json"
+# Updated path to pull from the '/BEAMNode_Prototype1/scripts/node/' directory.
+CONFIG_FILE = "/BEAMNode_Prototype1/scripts/node/config.json"
 
 
 def get_config_data():
@@ -37,6 +38,8 @@ def get_config_data():
         }
     }
 
+    print(f"INFO: Attempting to load config from local file: {CONFIG_FILE}")
+
     try:
         # Open and load the JSON content from the local file
         with open(CONFIG_FILE, 'r') as f:
@@ -46,8 +49,8 @@ def get_config_data():
         return config
 
     except FileNotFoundError:
-        # Updated error message to indicate the expected path
-        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Ensure it is located in the 'node' subdirectory relative to the script's execution path. Using default settings.")
+        # Updated error message to indicate the expected absolute path
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Ensure it is located at the absolute path '/BEAMNode_Prototype1/scripts/node/config.json'. Using default settings.")
         return default_config
     except json.JSONDecodeError:
         print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Using default settings.")
