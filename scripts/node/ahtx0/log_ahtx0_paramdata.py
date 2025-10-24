@@ -41,8 +41,7 @@ def get_config_data():
         # Open and load the JSON content from the local file
         with open(CONFIG_FILE, 'r') as f:
             config = json.load(f)
-
-        print("INFO: Configuration loaded successfully from local file.")
+            
         return config
 
     except FileNotFoundError:
