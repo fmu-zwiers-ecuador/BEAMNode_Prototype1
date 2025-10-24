@@ -6,7 +6,6 @@ try:
     # Attempt to import hardware libraries (required for running on RPi/sensor)
     import board
     import adafruit_ahtx0
-    print("INFO: Using real hardware libraries (board, adafruit_ahtx0).")
 except ImportError as e:
     # This block ensures the script can run locally even if hardware libraries aren't installed,
     # though it will halt later during sensor initialization.
@@ -37,8 +36,6 @@ def get_config_data():
             }
         }
     }
-
-    print(f"INFO: Attempting to load config from local file: {CONFIG_FILE}")
 
     try:
         # Open and load the JSON content from the local file
