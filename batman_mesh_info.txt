@@ -3,7 +3,7 @@ supervisor1:
     IP_address: 192.168.1.20/24
 
 node1:
-    MAC_address:
+    MAC_address: b8:27:eb:a5:39:90
     IP_address: 192.168.1.1/24
 
 node2:
@@ -15,6 +15,7 @@ node3:
     IP_address: 192.168.1.3/24
 
 node4:
+    MAC_address: b8:27:eb:f0:28:aa
     IP_address: 192.168.1.4/24
 
 node5:
