@@ -3,7 +3,6 @@
 # Core for Adafruit
 sudo pip3 install adafruit-blinka --break-system-packages
 
-
 # install bme280 library
 sudo pip3 install adafruit-circuitpython-bme280 --break-system-packages
 
