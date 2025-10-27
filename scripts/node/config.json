@@ -34,6 +34,15 @@
       "temperature_C": "float",
       "humidity_percent": "float",
       "pressure_hPa": "float"
+    },
+
+    "audio": {
+
+    },
+
+    "camera": {
+      
     }
+
   }
 }
