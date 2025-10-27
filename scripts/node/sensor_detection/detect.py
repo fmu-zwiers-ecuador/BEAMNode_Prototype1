@@ -208,6 +208,26 @@ def get_devices(adds):
 i2coutput = scan_i2c(1) # i2c output for bus 1
 devices = get_devices(i2coutput)
 
+#*****************************************************#
+# AudioMoth (USB) - detection
+# Looks for the first mounted USB storage under common roots
+#*****************************************************#
+def detect_audiomoth_simple():
+    roots = ["/media/pi", "/media", "/mnt", "/run/media/pi"]
+    for root in roots:
+        if os.path.isdir(root):
+            for name in sorted(os.listdir(root)):
+                full = os.path.join(root, name)
+                if os.path.ismount(full):
+                    # Mark enabled and remember where it is
+                    set_config_flag(CONFIG_PATH, "audio", "enabled", True)
+                    set_config_flag(CONFIG_PATH, "audio", "mount_path", full)
+                    return True, f"AudioMoth USB storage at {full}"
+    return False, "No USB storage mount found."
+
+ok_am, info_am = detect_audiomoth_simple()
+print("AudioMoth:", ok_am, "-", info_am)
+
 print(f"The following sensors are online: {devices}")
 if isinstance(devices, list) and "TSL2591" in devices:
     set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)
