@@ -10,8 +10,8 @@ import subprocess
 import time
 from datetime import datetime, timedelta
 
-CONFIG_PATH = "/node/config.json"
-NODE_DIR = "/node"
+CONFIG_PATH = "./config.json"
+NODE_DIR = "."
 
 # Track last run times
 last_run_times = {}
