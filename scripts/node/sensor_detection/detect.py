@@ -27,14 +27,18 @@ def set_config_flag(path, section, key, value):
     if section not in cfg or not isinstance(cfg[section], dict):
         cfg[section] = {}
 
+        
+
     # Only update if it isn't already the desired value
-    if cfg[section].get(key) is not value:
+    if cfg[section].get(key) != value:
         cfg[section][key] = value
         # Atomic-ish write to avoid partial files on power loss
         tmp_path = f"{path}.tmp"
         with open(tmp_path, "w") as f:
             json.dump(cfg, f, indent=2)
         os.replace(tmp_path, path)
+        
+		
 
 #*****************************************************#
 #This section is for SPI detection
@@ -47,8 +51,29 @@ def set_config_flag(path, section, key, value):
 # ---------------------------
 # SPI LOGGER (BME/BMP280)
 # ---------------------------
+
+import logging.handlers
+LOG_DIR = "/home/pi/BEAMNode_Prototype1/logs"  # ADDED
+LOG_PATH = os.path.join(LOG_DIR, "detect_bme280.log")  # ADDED
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)  # ADDED
+except Exception as e:
+    print(f"[detect] Warning: could not create log dir {LOG_DIR}: {e}")
+    
 spi_logger = logging.getLogger("detect_bme280")
 spi_logger.setLevel(logging.INFO)
+
+if not spi_logger.handlers:  # ADDED: prevent duplicate handlers
+    try:
+        fh = logging.handlers.RotatingFileHandler(LOG_PATH, maxBytes=262_144, backupCount=3)  # ADDED
+        fh.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))  # ADDED
+        spi_logger.addHandler(fh)  # ADDED
+    except Exception as e:
+        sh = logging.StreamHandler()  # ADDED
+        sh.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))  # ADDED
+        spi_logger.addHandler(sh)  # ADDED
+        print(f"[detect] Warning: file logging disabled ({e}). Using console handler.")  # ADDED
+        
 _spi_fh = logging.FileHandler("detect_bme280.log", mode="a")
 _spi_fh.setFormatter(logging.Formatter("%(name)s %(levelname)s %(message)s"))
 spi_logger.addHandler(_spi_fh)
@@ -93,10 +118,10 @@ def read_BME():
 	try:
 		spi_logger.info("Starting BME/BMP280 chip-ID read (SPI mode=0, 1MHz, CS=GPIO5)")
 		chip1 = read_chip_ID(spi, 0xD0, CS_PIN)
-		import time  # ADDED: tiny delay between reads
-		time.sleep(0.002)  # ADDED
-		chip2 = read_chip_ID(spi, 0xD0, CS_PIN)  # ADDED
-		chip = chip1 if chip1 == chip2 else 0x00  # ADDED: require stable ID
+		import time  # tiny delay between reads
+		time.sleep(0.002) 
+		chip2 = read_chip_ID(spi, 0xD0, CS_PIN) 
+		chip = chip1 if chip1 == chip2 else 0x00  # require stable ID
 		if chip in (0x60, 0x58):
 			which = "BME280" if chip == 0x60 else "BMP280"
 
