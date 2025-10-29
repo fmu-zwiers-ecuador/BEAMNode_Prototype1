@@ -15,6 +15,7 @@ import logging
 import re
 import os, time, json, logging, spidev, RPi.GPIO as GPIO
 import json
+import sys  # ADDED
 CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
 def set_config_flag(path, section, key, value):
     """Safely set a boolean flag in config.json without touching anything else."""
@@ -51,13 +52,34 @@ def set_config_flag(path, section, key, value):
 # ---------------------------
 
 import logging.handlers
+# ADDED: prefer /home/pi logs, fallback to /tmp if not writable
+PRIMARY_LOG_DIR = "/home/pi/BEAMNode_Prototype1/logs"
+FALLBACK_LOG_DIR = "/tmp/beam_logs"
+def get_log_dir():
+    """Return a writable log directory, falling back to /tmp if needed."""
+    try:
+        os.makedirs(PRIMARY_LOG_DIR, exist_ok=True)
+        test_file = os.path.join(PRIMARY_LOG_DIR, ".writetest")
+        with open(test_file, "w") as f:
+            f.write("ok")
+        os.remove(test_file)
+        return PRIMARY_LOG_DIR
+    except Exception as e:
+        print(f"[detect] Log directory not writable ({e}), using fallback /tmp", file=sys.stderr)
+        os.makedirs(FALLBACK_LOG_DIR, exist_ok=True)
+        return FALLBACK_LOG_DIR
+
+LOG_DIR = get_log_dir()  # ADDED
+
 LOG_DIR = "/home/pi/BEAMNode_Prototype1/logs"  # ADDED
+
 LOG_PATH = os.path.join(LOG_DIR, "detect_bme280.log")  # ADDED
 try:
     os.makedirs(LOG_DIR, exist_ok=True)  # ADDED
 except Exception as e:
     print(f"[detect] Warning: could not create log dir {LOG_DIR}: {e}")
     
+
 spi_logger = logging.getLogger("detect_bme280")
 spi_logger.setLevel(logging.INFO)
 
