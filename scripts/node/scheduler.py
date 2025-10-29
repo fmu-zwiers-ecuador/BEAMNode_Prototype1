@@ -68,6 +68,8 @@ def scheduler_loop():
 
         for sensor, params in config.items():
             freq_min = params.get("frequency")
+            if freq_min is None:
+                continue  # skip if no frequency defined
             last_run = last_run_times.get(sensor)
             next_run = last_run + timedelta(minutes=freq_min)
 
