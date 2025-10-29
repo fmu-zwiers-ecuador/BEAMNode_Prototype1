@@ -41,6 +41,7 @@
     },
 
     "camera": {
+      "enabled": true,
       
     }
 
