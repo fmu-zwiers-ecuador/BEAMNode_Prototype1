@@ -27,8 +27,6 @@ def set_config_flag(path, section, key, value):
     if section not in cfg or not isinstance(cfg[section], dict):
         cfg[section] = {}
 
-        
-
     # Only update if it isn't already the desired value
     if cfg[section].get(key) != value:
         cfg[section][key] = value
