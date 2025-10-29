@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import os
 
 # Determine project root dynamically
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load config
 config_path = os.path.join(project_root, "config.json")
