@@ -51,6 +51,8 @@ def run_sensor_once(sensor):
         print(f"[ERROR] {sensor} exited with code {result.returncode}")
         print(result.stderr)
 
+
+
 def scheduler_loop():
     print("[INFO] Frequency-based Scheduler started")
     config = load_config()
@@ -65,14 +67,17 @@ def scheduler_loop():
         config = load_config()  # reload in case user updates config.json
 
         for sensor, params in config.items():
-            freq_min = params.get("frequency", 5)
-            last_run = last_run_times.get(sensor, now)
+            freq_min = params.get("frequency")
+            if freq_min is None:
+                continue  # skip if no frequency defined
+            last_run = last_run_times.get(sensor)
             next_run = last_run + timedelta(minutes=freq_min)
 
             if now >= next_run:
                 run_sensor_once(sensor)
                 last_run_times[sensor] = datetime.now()
-
+    
+                        
         time.sleep(5)  # check every 5 seconds
 
 if __name__ == "__main__":
