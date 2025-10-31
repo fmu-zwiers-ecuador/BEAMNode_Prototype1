@@ -197,6 +197,7 @@ print(ok, info)
 # Hardcoded address dictionary for sensors
 addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
 	"TSL2591": 0x29,
+    "AHT": 0x38,   # ADDED - Adafruit AHT20/AHT21 I2C address
 	#"BME280": 00,
 	#"PIR" : 00
 }
@@ -274,5 +275,7 @@ ok_am, info_am = detect_audiomoth_simple()
 print("AudioMoth:", ok_am, "-", info_am)
 
 print(f"The following sensors are online: {devices}")
-if isinstance(devices, list) and "TSL2591" in devices:
-    set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)
+if isinstance(devices, list):  
+    print("The following sensors are online:", ", ".join(devices) if devices else "None")  # ADDED
+else: 
+    print(devices)  

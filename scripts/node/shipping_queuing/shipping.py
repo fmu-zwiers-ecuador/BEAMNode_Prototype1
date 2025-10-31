@@ -7,10 +7,11 @@ import time
 import json
 from datetime import datetime, timezone
 
-# load config_json for filenames
+
+# Load config.json for directory paths
 
 # Determine project root dynamically
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load config
 config_path = os.path.join(project_root, "config.json")
@@ -19,23 +20,36 @@ with open(config_path, "r") as f:
 
 global_cfg = config["global"]
 
-# define data directory path
+
+# Define paths
 
 data_src = global_cfg.get("base_dir")
+zip_destination = global_cfg.get("ship_dir")
+os.makedirs(zip_destination, exist_ok=True)  # Ensure folder exists
 
-# find timestamp and determine zip name
 
-timestamp = datetime.now(timezone.utc).isoformat()
-zip_name = f'data_{timestamp}'
+# Create ZIP name and output path
 
-# define destination
+timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+zip_name = f"data_{timestamp}"
+zip_output = os.path.join(zip_destination, zip_name)
 
-zip_destination = global_cfg.get("ship_dir") 
+# Measure time and compress data
 
-# move and compress data directory
+start_time = time.time()
+
 try:
-    shutil.make_archive(zip_name, 'zip', root_dir=data_src, base_dir=zip_destination)
-    print(f"Data successfully moved to Shipping as {zip_name}'")
+    shutil.make_archive(zip_output, 'zip', root_dir=data_src)
+    end_time = time.time()
+    total_time = end_time - start_time
+
+    # Get ZIP file size (in MB)
+    zip_file_path = f"{zip_output}.zip"
+    zip_size = os.path.getsize(zip_file_path) / (1024 * 1024)
+
+    print(f"Data successfully moved to Shipping as {zip_file_path}")
+    print(f"ZIP file size: {zip_size:.2f} MB")
+    print(f"Total shipping time: {total_time:.2f} seconds")
+
 except Exception as e:
     print(f"Error compressing directory: {e}")
-
