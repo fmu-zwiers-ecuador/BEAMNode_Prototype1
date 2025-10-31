@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 # load config_json for filenames
 
-# Determine project root dynamically
+# determine project root
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load config
