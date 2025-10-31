@@ -18,25 +18,27 @@ import json
 import sys  # ADDED
 CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
 def set_config_flag(path, section, key, value):
-    """Safely set a boolean flag in config.json without touching anything else."""
-    print(f"[config] trying to update {path} → {section}.{key} = {value}")
+    print(f"[config] FORCE set {section}.{key} = {value}")
+    print(f"[config] target file: {path}")
+
+    # 1) load
     try:
         with open(path, "r") as f:
             cfg = json.load(f)
-            print("[config] loaded existing JSON")
+            print("[config] loaded JSON, top-level keys:", list(cfg.keys()))
     except Exception as e:
-        print(f"[config] could not read JSON ({e}), starting fresh with {{}}")
+        print(f"[config] could not read JSON ({e}), starting with empty dict")
         cfg = {}
 
+    # 2) ensure section
     if section not in cfg or not isinstance(cfg[section], dict):
+        print(f"[config] section '{section}' missing, creating it")
         cfg[section] = {}
 
-    if cfg[section].get(key) == value:
-        print("[config] value already set, no write needed")
-        return
-
+    # 3) always set (NO 'value already set' shortcut)
     cfg[section][key] = value
 
+    # 4) write atomically
     tmp_path = f"{path}.tmp"
     try:
         with open(tmp_path, "w") as f:
@@ -44,8 +46,16 @@ def set_config_flag(path, section, key, value):
         os.replace(tmp_path, path)
         print(f"[config] WRITE OK → {path}")
     except Exception as e:
-        print(f"[config] WRITE FAILED for {path}: {e}")
+        print(f"[config] WRITE FAILED → {path}: {e}")
+        return
 
+    # 5) read it back IMMEDIATELY to prove it’s there
+    try:
+        with open(path, "r") as f:
+            new_cfg = json.load(f)
+        print("[config] AFTER WRITE:", json.dumps(new_cfg.get(section, {}), indent=2))
+    except Exception as e:
+        print(f"[config] re-read failed: {e}")
         
 		
 
@@ -244,39 +254,35 @@ def scan_i2c(busnum):
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
 def get_devices(adds):
-    # check adds for -1, if so, return error #
     if adds == -1:
+        print("[i2c] scan failed")
         return "There are no avalible sensors"
 
-    detected_sensors = []
+    print("[i2c] raw output:")
+    print(adds)
 
     address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
     found_addrs = [int(addr, 16) for addr in address_matches]
+    print("[i2c] parsed addresses:", [hex(a) for a in found_addrs])
+
+    detected_sensors = []
 
     for sensor_name, sensor_addr in addr_table.items():
         if sensor_addr in found_addrs:
+            print(f"[i2c] DETECTED {sensor_name} at {hex(sensor_addr)}")
             detected_sensors.append(sensor_name)
-            logging.info(f'{sensor_name} detected.')
 
-            # ADDED for config: flip the right block in config.json
             if sensor_name.upper() == "AHT":
-                # your config probably has "aht": { "enabled": false, ... }
-                set_config_flag(CONFIG_PATH, "aht", "enabled", True)   # ADDED
-            elif sensor_name.upper() == "TSL2591":
-                # if you want TSL to auto-enable too, keep this
-                set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)  # ADDED
+                print("[i2c] calling set_config_flag for AHT")
+                set_config_flag(CONFIG_PATH, "aht", "enabled", True)
 
+            if sensor_name.upper() == "TSL2591":
+                print("[i2c] calling set_config_flag for TSL2591")
+                set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)
         else:
-            # optional: if not found, you could disable
-            # but I’ll leave it commented bc you may not want detection to turn things OFF
-            # if sensor_name.upper() == "AHT":
-            #     set_config_flag(CONFIG_PATH, "aht", "enabled", False)
-            pass
+            print(f"[i2c] {sensor_name} NOT seen")
 
     return detected_sensors
-
-i2coutput = scan_i2c(1) # i2c output for bus 1
-devices = get_devices(i2coutput)
 
 #*****************************************************#
 # AudioMoth (USB) - detection
