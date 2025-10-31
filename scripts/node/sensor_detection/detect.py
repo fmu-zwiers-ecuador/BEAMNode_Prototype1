@@ -19,23 +19,33 @@ import sys  # ADDED
 CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
 def set_config_flag(path, section, key, value):
     """Safely set a boolean flag in config.json without touching anything else."""
+    print(f"[config] trying to update {path} → {section}.{key} = {value}")
     try:
         with open(path, "r") as f:
             cfg = json.load(f)
-    except Exception:
+            print("[config] loaded existing JSON")
+    except Exception as e:
+        print(f"[config] could not read JSON ({e}), starting fresh with {{}}")
         cfg = {}
 
     if section not in cfg or not isinstance(cfg[section], dict):
         cfg[section] = {}
 
-    # Only update if it isn't already the desired value
-    if cfg[section].get(key) != value:
-        cfg[section][key] = value
-        # Atomic-ish write to avoid partial files on power loss
-        tmp_path = f"{path}.tmp"
+    if cfg[section].get(key) == value:
+        print("[config] value already set, no write needed")
+        return
+
+    cfg[section][key] = value
+
+    tmp_path = f"{path}.tmp"
+    try:
         with open(tmp_path, "w") as f:
             json.dump(cfg, f, indent=2)
         os.replace(tmp_path, path)
+        print(f"[config] WRITE OK → {path}")
+    except Exception as e:
+        print(f"[config] WRITE FAILED for {path}: {e}")
+
         
 		
 
