@@ -18,44 +18,24 @@ import json
 import sys  # ADDED
 CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
 def set_config_flag(path, section, key, value):
-    print(f"[config] FORCE set {section}.{key} = {value}")
-    print(f"[config] target file: {path}")
-
-    # 1) load
+    """Safely set a boolean flag in config.json without touching anything else."""
     try:
         with open(path, "r") as f:
             cfg = json.load(f)
-            print("[config] loaded JSON, top-level keys:", list(cfg.keys()))
-    except Exception as e:
-        print(f"[config] could not read JSON ({e}), starting with empty dict")
+    except Exception:
         cfg = {}
 
-    # 2) ensure section
     if section not in cfg or not isinstance(cfg[section], dict):
-        print(f"[config] section '{section}' missing, creating it")
         cfg[section] = {}
 
-    # 3) always set (NO 'value already set' shortcut)
-    cfg[section][key] = value
-
-    # 4) write atomically
-    tmp_path = f"{path}.tmp"
-    try:
+    # Only update if it isn't already the desired value
+    if cfg[section].get(key) != value:
+        cfg[section][key] = value
+        # Atomic-ish write to avoid partial files on power loss
+        tmp_path = f"{path}.tmp"
         with open(tmp_path, "w") as f:
             json.dump(cfg, f, indent=2)
         os.replace(tmp_path, path)
-        print(f"[config] WRITE OK → {path}")
-    except Exception as e:
-        print(f"[config] WRITE FAILED → {path}: {e}")
-        return
-
-    # 5) read it back IMMEDIATELY to prove it’s there
-    try:
-        with open(path, "r") as f:
-            new_cfg = json.load(f)
-        print("[config] AFTER WRITE:", json.dumps(new_cfg.get(section, {}), indent=2))
-    except Exception as e:
-        print(f"[config] re-read failed: {e}")
         
 		
 
@@ -254,35 +234,25 @@ def scan_i2c(busnum):
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
 def get_devices(adds):
-    if adds == -1:
-        print("[i2c] scan failed")
-        return "There are no avalible sensors"
 
-    print("[i2c] raw output:")
-    print(adds)
+	# check adds for -1, if so, return error #
+	if adds == -1:
+		return "There are no avalible sensors"
 
-    address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-    found_addrs = [int(addr, 16) for addr in address_matches]
-    print("[i2c] parsed addresses:", [hex(a) for a in found_addrs])
+	detected_sensors = []
 
-    detected_sensors = []
+	address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+	found_addrs = [int(addr, 16) for addr in address_matches]
 
-    for sensor_name, sensor_addr in addr_table.items():
-        if sensor_addr in found_addrs:
-            print(f"[i2c] DETECTED {sensor_name} at {hex(sensor_addr)}")
-            detected_sensors.append(sensor_name)
+	for sensor_name, sensor_addr in addr_table.items():
+		if sensor_addr in found_addrs:
+			detected_sensors.append(sensor_name)
+			logging.info(f'{sensor_name} detected.')
+	
+	return detected_sensors
 
-            if sensor_name.upper() == "AHT":
-                print("[i2c] calling set_config_flag for AHT")
-                set_config_flag(CONFIG_PATH, "aht", "enabled", True)
-
-            if sensor_name.upper() == "TSL2591":
-                print("[i2c] calling set_config_flag for TSL2591")
-                set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)
-        else:
-            print(f"[i2c] {sensor_name} NOT seen")
-
-    return detected_sensors
+i2coutput = scan_i2c(1) # i2c output for bus 1
+devices = get_devices(i2coutput)
 
 #*****************************************************#
 # AudioMoth (USB) - detection
