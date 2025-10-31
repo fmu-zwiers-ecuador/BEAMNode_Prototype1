@@ -234,22 +234,36 @@ def scan_i2c(busnum):
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
 def get_devices(adds):
+    # check adds for -1, if so, return error #
+    if adds == -1:
+        return "There are no avalible sensors"
 
-	# check adds for -1, if so, return error #
-	if adds == -1:
-		return "There are no avalible sensors"
+    detected_sensors = []
 
-	detected_sensors = []
+    address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+    found_addrs = [int(addr, 16) for addr in address_matches]
 
-	address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-	found_addrs = [int(addr, 16) for addr in address_matches]
+    for sensor_name, sensor_addr in addr_table.items():
+        if sensor_addr in found_addrs:
+            detected_sensors.append(sensor_name)
+            logging.info(f'{sensor_name} detected.')
 
-	for sensor_name, sensor_addr in addr_table.items():
-		if sensor_addr in found_addrs:
-			detected_sensors.append(sensor_name)
-			logging.info(f'{sensor_name} detected.')
-	
-	return detected_sensors
+            # ADDED for config: flip the right block in config.json
+            if sensor_name.upper() == "AHT":
+                # your config probably has "aht": { "enabled": false, ... }
+                set_config_flag(CONFIG_PATH, "aht", "enabled", True)   # ADDED
+            elif sensor_name.upper() == "TSL2591":
+                # if you want TSL to auto-enable too, keep this
+                set_config_flag(CONFIG_PATH, "tsl2591", "enabled", True)  # ADDED
+
+        else:
+            # optional: if not found, you could disable
+            # but I’ll leave it commented bc you may not want detection to turn things OFF
+            # if sensor_name.upper() == "AHT":
+            #     set_config_flag(CONFIG_PATH, "aht", "enabled", False)
+            pass
+
+    return detected_sensors
 
 i2coutput = scan_i2c(1) # i2c output for bus 1
 devices = get_devices(i2coutput)
