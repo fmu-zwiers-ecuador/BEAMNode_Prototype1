@@ -8,7 +8,7 @@
   },
 
   "tsl2591": {
-    "enabled": true,
+    "enabled": false,
     "directory": "tsl2591",
     "file_name": "lux_data.json",
     "frequency": 5,
@@ -50,14 +50,6 @@
       "pressure_hPa": "float"
     }
 
-  
-
-    
-
-    
-
-   
-    
 
   },
   "audio": {
