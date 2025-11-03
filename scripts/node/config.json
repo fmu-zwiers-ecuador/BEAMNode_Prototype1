@@ -48,24 +48,37 @@
       "temperature_C": "float",
       "humidity_percent": "float",
       "pressure_hPa": "float"
-    },
+    }
 
   
 
     
 
-    "audio": {
-
-    },
-
-    "camera": {
-      "enabled": true
-      
-    }
+    
 
    
     
 
-  }
+  },
+  "audio": {
+    "enabled": false,
+    "mount_path": null
+  },
+
+    "camera": {
+    "enabled": false,
+    "interface": "CSI",
+    "library": "picamera2",
+    "expected_model": "imx219",
+    "device_id": 0,
+    "directory": "camera",
+    "file_name": "camera_status.json",
+    "record_schema": {
+      "timestamp": "ISO8601",
+      "status": "string",
+      "model": "string",
+      "details": "string"
+    }
+    }
   
 }
