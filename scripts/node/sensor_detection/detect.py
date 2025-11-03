@@ -189,6 +189,16 @@ def detect_imx219_picamera2():
 
 ok, info = detect_imx219_picamera2()
 print(ok, info)
+# Flip camera flags in the config based on detection result
+try:
+    if ok:
+        set_config_flag(CONFIG_PATH, "camera", "enabled", True)        
+        set_config_flag(CONFIG_PATH, "camera", "model", "imx219")       
+        set_config_flag(CONFIG_PATH, "camera", "last_detect_info", info)  
+    else:
+        set_config_flag(CONFIG_PATH, "camera", "enabled", False)        
+except Exception as e:
+    print(f"[detect] Failed to update camera flags: {e}")               
 
 #*****************************************************#
 #This section is for I2C detection
