@@ -27,9 +27,7 @@ with open(config_path, "r") as f:
 global_config = config.get("global", {})
 cam_config = config.get("camera", {})
 
-# Exit if disabled
-if not cam_config.get("enabled", True):
-    exit(0)
+
 
 node_id = global_config.get("node_id", "unknown-node")
 base_dir = global_config.get("base_dir", os.path.join(project_root, "data"))

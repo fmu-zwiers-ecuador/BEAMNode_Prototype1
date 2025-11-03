@@ -15,9 +15,7 @@ with open(config_path, "r") as f:
 tsl_config = config["tsl2591"]
 global_config = config["global"]
 
-# Check if sensor is enabled
-if not tsl_config.get("enabled", True):
-    exit(0)
+
 
 node_id = global_config.get("node_id", "unknown-node")
 

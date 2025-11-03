@@ -21,8 +21,6 @@ audio_config = config["audio"]
 global_config = config["global"]
 
 # Check if recording is enabled
-if not audio_config.get("enabled", True):
-    exit(0)
 
 # Base directory: /home/pi/data/audio
 base_dir = global_config.get("base_dir", os.path.join(project_root, "data"))
