@@ -16,7 +16,7 @@ import re
 import os, time, json, logging, spidev, RPi.GPIO as GPIO
 import json
 import sys  # ADDED
-CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/config.json"
+CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
 def set_config_flag(path, section, key, value):
     """Safely set a boolean flag in config.json without touching anything else."""
     try:
@@ -93,7 +93,7 @@ if not spi_logger.handlers:  # ADDED: prevent duplicate handlers
         sh.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))  # ADDED
         spi_logger.addHandler(sh)  # ADDED
         print(f"[detect] Warning: file logging disabled ({e}). Using console handler.")  # ADDED
-        
+    
 _spi_fh = logging.FileHandler("detect_bme280.log", mode="a")
 _spi_fh.setFormatter(logging.Formatter("%(name)s %(levelname)s %(message)s"))
 spi_logger.addHandler(_spi_fh)
