@@ -22,20 +22,11 @@ CONFIG_FILE = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
 def get_config_data():
     """
     Loads configuration from the local CONFIG_FILE.
-    Uses a robust default structure if the file is missing or parsing fails.
-    This ensures local file configuration is prioritized.
+    If the file is missing or invalid, it returns an empty dictionary.
+    The main script uses default values when keys are missing.
     """
 
-    # Robust default structure for fallback (Offsets removed)
-    default_config = {
-        "node_id": "beam-node-01-default",
-        "sensor_parameters": {
-            "ahtx0": {
-                "log_file": "env_data.json",
-                "sensor_name": "ahtx0",
-            }
-        }
-    }
+    # The explicit default_config structure has been removed as requested.
 
     try:
         # Open and load the JSON content from the local file
@@ -45,15 +36,17 @@ def get_config_data():
         return config
 
     except FileNotFoundError:
-        # Updated error message to indicate the expected absolute path
-        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Ensure it is located at the absolute path '/BEAMNode_Prototype1/scripts/node/config.json'. Using default settings.")
-        return default_config
+        # Configuration file not found. Returns empty dict to use hardcoded fallbacks.
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Ensure it is located at the absolute path '/BEAMNode_Prototype1/scripts/node/config.json'. Cannot load configuration.")
+        return {}
     except json.JSONDecodeError:
-        print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Using default settings.")
-        return default_config
+        # File is found but corrupted/invalid JSON.
+        print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Cannot load configuration.")
+        return {}
     except Exception as e:
-        print(f"ERROR: An unexpected error occurred during config loading: {e}. Using default settings.")
-        return default_config
+        # Catch any other unexpected error during config loading.
+        print(f"ERROR: An unexpected error occurred during config loading: {e}. Cannot load configuration.")
+        return {}
 
 
 # Load Configuration and get AHTx0 specific parameters
@@ -61,7 +54,7 @@ full_config = get_config_data()
 ahtx0_params = full_config.get("sensor_parameters", {}).get("ahtx0", {})
 
 
-# Use config values, falling back to defaults if not found
+# Use config values, falling back to hardcoded defaults if not found
 NODE_ID = full_config.get("node_id", "beam-node-01-default")
 SENSOR_NAME = ahtx0_params.get("sensor_name", "ahtx0-default")
 file_path = ahtx0_params.get("log_file", "env_data.json")
@@ -129,8 +122,3 @@ try:
     # 4. Write the updated data back to the file
     with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
-
-    print(f"SUCCESS: Data appended to configured file: {file_path}")
-
-except Exception as e:
-    print(f"FATAL ERROR: Failed to process and save environment data: {e}")
