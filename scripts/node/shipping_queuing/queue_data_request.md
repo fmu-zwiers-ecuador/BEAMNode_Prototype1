@@ -1,9 +1,3 @@
-**BEAM Student Task Documentation Template**
-
-Use this template to record your work clearly. Keep it short but complete so others can understand and reproduce your results.
-
----
-
 **Basic Info**
 
 * **Task Title:** Write queue script  
