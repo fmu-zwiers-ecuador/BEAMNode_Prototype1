@@ -55,7 +55,10 @@ ahtx0_params = full_config.get("sensor_parameters", {}).get("ahtx0", {})
 # Use config values, falling back to hardcoded defaults if not found
 NODE_ID = full_config.get("node_id", "beam-node-01-default")
 SENSOR_NAME = ahtx0_params.get("sensor_name", "ahtx0-default")
-file_path = ahtx0_params.get("log_file", "env_data.json")
+
+# --- MODIFICATION: Setting the absolute file_path to the requested location ---
+file_path = "/home/pi/data/ahtx0/env_data.json"
+# -----------------------------------------------------------------------------
 
 
 # -----------------------------
@@ -100,6 +103,9 @@ env_json_data = {
 # Save to JSON file (Improved robustness)
 # -----------------------------
 try:
+    # Ensure the directory structure exists before trying to open the file
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
     data = {}
 
     # 1. Check if file exists and load it
