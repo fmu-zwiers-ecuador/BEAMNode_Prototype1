@@ -13,7 +13,10 @@ Follow these steps to set up BATMAN-adv.
 
 ### 1. Install Batman Package
 
-sudo apt install batctl
+sudo apt install batctl (IMPORTANT)
+
+You can run "install-batman.sh" automated script
+if manually then continue to step 2
 
 ---
 
