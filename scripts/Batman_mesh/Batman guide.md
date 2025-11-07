@@ -11,7 +11,13 @@ Follow these steps to set up BATMAN-adv.
 
 ---
 
-### 1. Create the startup script
+### 1. Install Batman Package
+
+sudo apt install batctl
+
+---
+
+### 2. Create the startup script
 
 Create the file `/usr/local/bin/start-batman.sh` with the following contents:
 
@@ -52,7 +58,7 @@ sudo chmod +x /usr/local/bin/start-batman.sh
 
 ---
 
-### 2. Create the systemd service
+### 3. Create the systemd service
 
 Create the file `/etc/systemd/system/batman.service` with the following contents:
 
@@ -73,7 +79,7 @@ WantedBy=multi-user.target     # start at normal multi-user boot (default runlev
 
 ---
 
-### 3. Enable the service
+### 4. Enable the service
 
 Reload systemd and enable the service:
 
@@ -85,7 +91,7 @@ sudo systemctl start batman.service    # start service immediately
 
 ---
 
-### 4. Verify the service
+### 5. Verify the service
 
 Check status:
 
