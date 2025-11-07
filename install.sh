@@ -30,3 +30,6 @@ pip install python-tsl2591
 pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
 sudo pip3 install adafruit-circuitpython-ahtx0
 
+# installing Batctl packages
+sudo apt install batctl
+
