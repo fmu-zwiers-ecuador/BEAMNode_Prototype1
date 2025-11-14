@@ -37,6 +37,9 @@ The log\_lux\_data script grabs the lux data from the TSL light sensor and store
 ---
 
 **4\) Method**
+* To insure that the proper libaries are installed, use command: 
+
+pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
 
 * In the script, the main json file is sorted into a dictionary with variables: "node\_id": "beam-node-01", "sensor": "tsl2591", and "records": \[\]. In the records array, that is where the lux data dictionary will be appended and stored.
 
