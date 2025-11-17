@@ -92,6 +92,7 @@ def main():
         latencies[name] = latency
         log(f"{name} ({ip}) -> {latency if latency is not None else 'unreachable'} ms")
 
+        
     # Sort nodes by best latency
     reachable = {n: l for n, l in latencies.items() if l is not None}
     sorted_nodes = sorted(reachable.items(), key=lambda x: x[1])
