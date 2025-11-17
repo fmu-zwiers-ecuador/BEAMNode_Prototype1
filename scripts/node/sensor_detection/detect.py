@@ -205,11 +205,9 @@ except Exception as e:
 #*****************************************************#
 
 # Hardcoded address dictionary for sensors
-addr_table = {	# THESE ARE PLACEHOLDERS - REPLACE WITH CORRECT ADDRESSES
-	"TSL2591": 0x29,
-    "AHT": 0x38,   # ADDED - Adafruit AHT20/AHT21 I2C address
-	#"BME280": 00,
-	#"PIR" : 00
+addr_table = {	# These are the address tables for the TSL2591 sensors and AHT sensors
+	"tsl2591": 0x29,
+    "aht": 0x38,   # ADDED - Adafruit AHT20/AHT21 I2C address
 }
 
 #Basic logging configurations for the TSL2591
@@ -244,22 +242,22 @@ def scan_i2c(busnum):
 # Function2 - get_devices(adds) - Take in output from i2c detect, parse,
 # return which sensors are currently online
 def get_devices(adds):
+    # check adds for -1, if so, return error #
+    if adds == -1:
+        return "There are no avalible sensors"
 
-	# check adds for -1, if so, return error #
-	if adds == -1:
-		return "There are no avalible sensors"
+    detected_sensors = []
 
-	detected_sensors = []
+    address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+    found_addrs = [int(addr, 16) for addr in address_matches]
 
-	address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-	found_addrs = [int(addr, 16) for addr in address_matches]
+    for sensor_name, sensor_addr in addr_table.items():
+        if sensor_addr in found_addrs:
+            detected_sensors.append(sensor_name)
+            set_config_flag(CONFIG_PATH, sensor_name, "enabled", True)
+            logging.info(f"{sensor_name} detected.")
 
-	for sensor_name, sensor_addr in addr_table.items():
-		if sensor_addr in found_addrs:
-			detected_sensors.append(sensor_name)
-			logging.info(f'{sensor_name} detected.')
-	
-	return detected_sensors
+    return detected_sensors
 
 i2coutput = scan_i2c(1) # i2c output for bus 1
 devices = get_devices(i2coutput)
