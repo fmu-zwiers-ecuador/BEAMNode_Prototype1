@@ -1,5 +1,5 @@
-## Script to move all information in DATA directory to shipping directory, and compress to ensure
-# ease of transfer
+## Script to move all information in DATA directory to shipping directory,
+## renaming the folder with hostname and timestamp (no zipping)
 
 import shutil
 import os
@@ -7,7 +7,7 @@ import time
 import json
 from datetime import datetime, timezone
 
-# Determine project root dynamically
+# Determine project root dynamically (one level up from this script)
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load config
@@ -17,35 +17,39 @@ with open(config_path, "r") as f:
 
 global_cfg = config["global"]
 
-# Paths
-data_src = global_cfg.get("base_dir")
-ship_dir = global_cfg.get("ship_dir")
-os.makedirs(ship_dir, exist_ok=True)  # Ensure folder exists
+# Paths from config (with safe defaults)
+data_src = global_cfg.get("base_dir", "/home/pi/data")
+ship_dir = global_cfg.get("ship_dir", "/home/pi/shipping")
+os.makedirs(ship_dir, exist_ok=True)  # Ensure shipping folder exists
 
-# ---- Name ZIP with node + UTC send date (e.g., beam-node-01_20251110T145122Z.zip)
-node_id = global_cfg.get("node_id")
-if not node_id:
-    try:
-        node_id = os.uname().nodename
-    except Exception:
-        node_id = "unknown-node"
-
-timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-zip_name = f"{node_id}_{timestamp}"
-zip_output = os.path.join(ship_dir, zip_name)
-
-# Compress
-start_time = time.time()
+# Determine hostname (what the node is)
 try:
-    shutil.make_archive(zip_output, 'zip', root_dir=data_src)
+    hostname = os.uname().nodename
+except Exception:
+    hostname = global_cfg.get("node_id", "unknown-node")
+
+# UTC timestamp like 20251113T194522Z
+timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+# New folder name in shipping: data-{hostname}-{timestamp}
+dest_dir_name = f"data-{hostname}-{timestamp}"
+dest_dir_path = os.path.join(ship_dir, dest_dir_name)
+
+start_time = time.time()
+
+try:
+    if not os.path.exists(data_src):
+        raise FileNotFoundError(f"Source data directory not found: {data_src}")
+
+    # Move the entire data folder into shipping under the new name
+    shutil.move(data_src, dest_dir_path)
+
+    # Recreate an empty data folder so the node can keep writing new data
+    os.makedirs(data_src, exist_ok=True)
+
     total_time = time.time() - start_time
-
-    zip_file_path = f"{zip_output}.zip"
-    zip_size_mb = os.path.getsize(zip_file_path) / (1024 * 1024)
-
-    print(f"Data successfully moved to Shipping as {zip_file_path}")
-    print(f"ZIP file size: {zip_size_mb:.2f} MB")
+    print(f"Data folder moved to Shipping as {dest_dir_path}")
     print(f"Total shipping time: {total_time:.2f} seconds")
 
 except Exception as e:
-    print(f"Error compressing directory: {e}")
+    print(f"Error moving directory: {e}")
