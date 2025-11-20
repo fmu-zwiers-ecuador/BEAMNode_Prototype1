@@ -82,9 +82,9 @@ def rsync_shipped_data(ip: str, hostname: str) -> None:
     except subprocess.CalledProcessError:
         log(f"Failed to rsync shipped data from {hostname} ({ip})")
 
-# -----------------------------
+# ------------------------------
 # MAIN LOGIC
-# -----------------------------
+# ------------------------------
 def main() -> None:
     log("=== Starting shipped data queue ===")
 
