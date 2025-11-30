@@ -9,7 +9,7 @@ Use this template to record your work clearly. Keep it short but complete so oth
 
 * **Task Title: AHTx0 Sensor**  
 * **Student(s): Jackson Roberts**  
-* **Mentor/Reviewer:**   
+* **Mentor/Reviewer:** Paul Zwiers   
 * **Date Started / Completed: 10/8/2025**  
 * **Status:** Done  
 * **GitHub Link: https://github.com/fmu-zwiers-ecuador/BEAMNode\_Prototype1/blob/main/scripts/node/aht0x/log\_AHT\_newdata.py**
@@ -24,7 +24,7 @@ Use this template to record your work clearly. Keep it short but complete so oth
 
 **2\) Goals**
 
-* Main goal(s): Allow the AHTx0 to properly measure temperature and humidity.  
+* Main goal(s): Allow the AHTx0 to properly measure temperature and humidity. While also outputting the results into the local data file on the rasberry pi.
 * How do we know it works? This code prints the humidity and temperature. This can be double checked through the json file.
 
 ---
