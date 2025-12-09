@@ -13,7 +13,7 @@ import subprocess
 import logging
 import re
 import os, time, json, logging, spidev, RPi.GPIO as GPIO
-import json
+import json   
 import sys
 
 CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
@@ -208,17 +208,19 @@ except Exception as e:
     print(f"[detect] Failed to update camera flags: {e}")
 
 #*****************************************************#
-# This section is for I2C detection (TSL2591, AHT)
+# I2C detection (TSL2591 + AHT)
 #*****************************************************#
 
-# Hardcoded address dictionary for sensors
+# TSL2591 may appear at 0x29 or 0x3A depending on board.
+# AHT20/21 uses 0x38.
 addr_table = {
-    # These are the address tables for the TSL2591 sensors and AHT sensors
-    "tsl2591": 0x29,
-    "aht": 0x38,   # Adafruit AHT20/AHT21 I2C address
+    "tsl2591": [0x29, 0x3A],
+    "aht": [0x38],
 }
 
-# Basic logging configurations for the TSL2591 / I2C detection
+# Try both buses; some nodes use i2c-1, others i2c-2.
+CANDIDATE_I2C_BUSES = (1, 2)
+
 logging.basicConfig(
     filename='detect_tsl2591.log',
     level=logging.INFO,
@@ -226,11 +228,8 @@ logging.basicConfig(
     filemode='w'
 )
 
-
 def scan_i2c(busnum):
-    """
-    Run i2cdetect on selected bus and return output as a string.
-    """
+    """Run i2cdetect on a bus and return output text."""
     try:
         result = subprocess.run(
             ["sudo", "i2cdetect", "-y", str(busnum)],
@@ -239,49 +238,58 @@ def scan_i2c(busnum):
             check=True
         )
         return result.stdout
-
-    except subprocess.CalledProcessError as e:
-        print("Error during i2cdetect:")
-        print(e.stderr)
+    except Exception:
         return -1
 
-    except FileNotFoundError:
-        print("i2cdetect command not found.")
-        return -1
+def scan_all_i2c_buses(buses=CANDIDATE_I2C_BUSES):
+    """Scan all available I2C buses and collect found addresses."""
+    all_found_addrs = set()
+    addr_to_buses = {}
 
+    for bus in buses:
+        if not os.path.exists(f"/dev/i2c-{bus}"):
+            continue
 
-def get_devices(adds):
-    """
-    Parse i2cdetect output, update config flags for all I2C sensors,
-    and return a list of detected sensor names.
-    """
-    # If i2cdetect failed entirely, mark all I2C sensors as disabled
-    if adds == -1:
-        for sensor_name in addr_table.keys():
-            set_config_flag(CONFIG_PATH, sensor_name, "enabled", False)
-            logging.info(f"{sensor_name} NOT detected (i2cdetect failed); marking disabled.")
-        return "i2cdetect failed on this bus"
+        adds = scan_i2c(bus)
+        if adds == -1:
+            continue
 
-    detected_sensors = []
+        matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+        for m in matches:
+            addr = int(m, 16)
+            all_found_addrs.add(addr)
+            addr_to_buses.setdefault(addr, set()).add(bus)
 
-    address_matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-    found_addrs = [int(addr, 16) for addr in address_matches]
+    return all_found_addrs, addr_to_buses
 
-    for sensor_name, sensor_addr in addr_table.items():
-        if sensor_addr in found_addrs:
-            detected_sensors.append(sensor_name)
+def detect_i2c_sensors():
+    """Detect sensors on all I2C buses and update config."""
+    found_addrs, addr_to_buses = scan_all_i2c_buses()
+    detected = []
+
+    for sensor_name, possible_addrs in addr_table.items():
+        found_addr = None
+        found_bus = None
+
+        # Pick first matching address
+        for addr in possible_addrs:
+            if addr in found_addrs:
+                found_addr = addr
+                found_bus = min(addr_to_buses[addr])
+                break
+
+        if found_addr is not None:
+            detected.append(sensor_name)
             set_config_flag(CONFIG_PATH, sensor_name, "enabled", True)
-            logging.info(f"{sensor_name} detected at 0x{sensor_addr:02X}.")
+            set_config_flag(CONFIG_PATH, sensor_name, "i2c_bus", found_bus)
+            set_config_flag(CONFIG_PATH, sensor_name, "address_hex", f"0x{found_addr:02X}")
         else:
-            # Explicitly mark this sensor as disabled if not found
             set_config_flag(CONFIG_PATH, sensor_name, "enabled", False)
-            logging.info(f"{sensor_name} NOT detected; marking disabled.")
+            set_config_flag(CONFIG_PATH, sensor_name, "i2c_bus", None)
 
-    return detected_sensors
+    return detected
 
-
-i2coutput = scan_i2c(1)  # i2c output for bus 1
-devices = get_devices(i2coutput)
+devices = detect_i2c_sensors()
 
 #*****************************************************#
 # AudioMoth (USB) - detection
