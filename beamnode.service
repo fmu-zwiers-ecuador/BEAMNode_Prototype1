@@ -1,0 +1,20 @@
+[Unit]
+Description=BEAMNode Startup Services (Detector and Scheduler)
+# Ensure the service waits until the network is up before starting
+After=network.target
+
+[Service]
+# Run the service as the standard Raspberry Pi user
+User=pi
+# Set the working directory to the 'node' script folder
+WorkingDirectory=/home/pi/BEAMNode_Prototype1/scripts/node
+# Execute the launcher script using its confirmed consolidated path
+ExecStart=/usr/bin/env python3 /home/pi/BEAMNode_Prototype1/scripts/node/launcher.py
+# If the script exits unexpectedly, systemd will try to restart it
+Restart=always
+# Standard type for a long-running, self-contained process
+Type=simple
+
+[Install]
+# Enable the service to start automatically during boot
+WantedBy=multi-user.target
