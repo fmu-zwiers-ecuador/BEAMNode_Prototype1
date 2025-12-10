@@ -9,11 +9,11 @@ USER="pi"
 
 # IMPORTANT: Update these IP addresses
 NODE_IPS=(
-    "192.168.1.101" # Node Pi 1 IP
-    "192.168.1.102" # Node Pi 2 IP
-    "192.168.1.103" # Node Pi 3 IP
-    "192.168.1.104" # Node Pi 4 IP
-    "192.168.1.105" # Node Pi 5 IP
+    "192.168.1.1" # Node Pi 1 IP
+    "192.168.1.2" # Node Pi 2 IP
+    "192.168.1.3" # Node Pi 3 IP
+    "192.168.1.4" # Node Pi 4 IP
+    "192.168.1.5" # Node Pi 5 IP
 )
 
 # --- DEPLOYMENT LOOP ---
