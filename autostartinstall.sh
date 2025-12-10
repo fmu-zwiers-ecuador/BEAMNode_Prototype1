@@ -3,7 +3,6 @@
 # This script automates the installation and activation of the BEAMNode systemd service.
 
 # --- Configuration ---
-# File names and paths are relative to this script's location (the repo root)
 SERVICE_FILE="beamnode.service"
 LAUNCHER_RELATIVE_PATH="scripts/node/launcher.py"
 
