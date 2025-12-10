@@ -10,7 +10,7 @@ User=pi
 WorkingDirectory=/home/pi/BEAMNode_Prototype1/scripts/node
 # Execute the launcher script using its confirmed consolidated path
 ExecStart=/usr/bin/env python3 /home/pi/BEAMNode_Prototype1/scripts/node/launcher.py
-# If the script exits unexpectedly, systemd will try to restart it
+# IMPORTANT: If the launcher exits (meaning the scheduler exited or startup failed), restart the whole sequence.
 Restart=always
 # Standard type for a long-running, self-contained process
 Type=simple
