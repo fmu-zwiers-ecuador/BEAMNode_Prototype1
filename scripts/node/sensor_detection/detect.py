@@ -33,7 +33,7 @@ def set_config_flag(path, section, key, value):
     # Only update if it isn't already the desired value
     if cfg[section].get(key) != value:
         cfg[section][key] = value
-        # Atomic-ish write to avoid partial files on power loss
+        # Atomic-ish write to avoid partial files on power los
         tmp_path = f"{path}.tmp"
         with open(tmp_path, "w") as f:
             json.dump(cfg, f, indent=2)
