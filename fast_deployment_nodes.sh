@@ -9,11 +9,11 @@ USER="pi"
 
 # IMPORTANT: Update these IP addresses
 NODE_IPS=(
-    "192.168.1.1" # Node Pi 1 IP (Failed to connect previously)
-    "192.168.1.2" # Node Pi 2 IP (Failed to connect previously)
-    "192.168.1.3" # Node Pi 3 IP (Line ending error previously)
-    "192.168.1.4" # Node Pi 4 IP (Line ending error previously)
-    "192.168.1.5" # Node Pi 5 IP (Failed to connect previously)
+    "192.168.1.1" 
+    "192.168.1.2" 
+    "192.168.1.3" 
+    "192.168.1.4" 
+    "192.168.1.5" 
 )
 
 # --- DEPLOYMENT LOOP ---
@@ -26,16 +26,15 @@ for IP in "${NODE_IPS[@]}"; do
     echo "=========================================================="
     
     # 1. Connection Check
-    # If the SSH connection fails, print an error and skip the node.
     if ! ssh -q $USER@$IP exit; then
         echo "--> ❌ ERROR: Could not connect to $IP. Please check network/IP/SSH keys."
         continue
     fi
     
-    # 2. CRITICAL FIX: Fix Line Endings on the remote installer script
-    # This prevents the "$'\r': command not found" error.
-    echo "Fixing Windows line endings on remote installer ($INSTALLER_SCRIPT)..."
-    SSH_CMD_FIX="cd ~/$REPO_DIR && sed -i 's/\r//g' $INSTALLER_SCRIPT"
+    # 2. CRITICAL FIX: Fix Line Endings on the remote installer script using 'tr'
+    # This ensures the remote script runs cleanly, preventing the "$'\r': command not found" error.
+    echo "Fixing Windows line endings on remote installer ($INSTALLER_SCRIPT) using 'tr'..."
+    SSH_CMD_FIX="cd ~/$REPO_DIR && tr -d '\r' < $INSTALLER_SCRIPT > temp_fixed.sh && mv temp_fixed.sh $INSTALLER_SCRIPT"
     ssh $USER@$IP "$SSH_CMD_FIX"
 
     # 3. Ensure installer script is executable on the node
