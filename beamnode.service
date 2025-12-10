@@ -6,7 +6,6 @@ After=network.target
 User=pi
 WorkingDirectory=/home/pi/BEAMNode_Prototype1/scripts/node
 ExecStart=/usr/bin/env python3 /home/pi/BEAMNode_Prototype1/scripts/node/launcher.py
-# If the launcher exits, restart the whole sequence (detect.py runs again)
 Restart=always
 Type=simple
 
