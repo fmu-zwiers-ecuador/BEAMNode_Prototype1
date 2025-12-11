@@ -30,7 +30,7 @@ def load_nodes(json_filepath):
             for name, info in data.items():
                 ip = info["ip"]
                 transfer = info["transfer_fail"]
-                state = ["node_state"]
+                state = info["node_state"]
 
                 print(f"Loaded node: {name}, IP: {ip}, transfer_fail: {transfer}, state: {state}")
 
@@ -168,7 +168,7 @@ def main():
         log("=== Retrying failed data transfers ===")
         for node in nodes:
             log(f"Attempting data transfer from {node.name} ({node.ip})")
-            if node.status == "alive" and node.transfer_fail:
+            if node.state == "alive" and node.transfer_fail:
                 success = rsync_shipped_data(node.ip, node.name)
                 log(f"Node {node.name} transfer success: {success}")
                 if success:
