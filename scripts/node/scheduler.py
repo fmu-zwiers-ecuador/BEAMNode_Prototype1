@@ -16,6 +16,12 @@ NODE_DIR = "."
 # Track last run times
 last_run_times = {}
 
+# current time
+current_time = datetime.now()
+
+#beginning of next hour
+start_time = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+
 def load_config():
     """Load frequency configuration for all sensors."""
     with open(CONFIG_PATH, "r") as f:
@@ -83,6 +89,9 @@ def scheduler_loop():
 
 if __name__ == "__main__":
     try:
+        # wait until start time
+        while datetime.now() < start_time:
+            time.sleep(1)
         scheduler_loop()
     except KeyboardInterrupt:
         print("\n[INFO] Scheduler shutting down gracefully.")
