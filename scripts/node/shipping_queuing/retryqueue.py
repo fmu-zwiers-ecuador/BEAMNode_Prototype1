@@ -168,7 +168,7 @@ def main():
         log("=== Retrying failed data transfers ===")
         for node in nodes:
             log(f"Attempting data transfer from {node.name} ({node.ip})")
-            if node.alive and node.transfer_fail:
+            if node.status == "alive" and node.transfer_fail:
                 success = rsync_shipped_data(node.ip, node.name)
                 log(f"Node {node.name} transfer success: {success}")
                 if success:
