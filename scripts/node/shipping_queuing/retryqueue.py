@@ -29,8 +29,8 @@ def load_nodes(json_filepath):
             data = json.load(f)
             for name, info in data.items():
                 ip = info["ip"]
-                transfer = info.get("transfer_fail")
-                state = info.get("state", "unknown")
+                transfer = info["transfer_fail"]
+                state = ["state"]
 
                 print(f"Loaded node: {name}, IP: {ip}, transfer_fail: {transfer}, state: {state}")
 
@@ -121,7 +121,7 @@ def ping_nodes():
             # set node to alive
             node.state = "alive"
         else:
-            log(f"Node {node.name} ({node.ip}) is unreachable")
+            log(f"Node {node.name} ({node.ip}) is unreachable. Marked as dead.")
             node.state = "dead"
 
 def ping_dead_nodes():
@@ -150,7 +150,7 @@ def main():
     log("=== Initial data transfer attempt ===")
     for node in nodes:
         log(f"Attempting data transfer from {node.name} ({node.ip})")
-        if node.alive and not node.transfer_fail:
+        if node.status == "alive" and not node.transfer_fail:
             success = rsync_shipped_data(node.ip, node.name)
             log(f"Node {node.name} transfer success: {success}")
             if not success:
