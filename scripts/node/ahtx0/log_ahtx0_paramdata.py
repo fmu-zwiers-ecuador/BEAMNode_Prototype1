@@ -34,15 +34,12 @@ def get_config_data():
         return config
 
     except FileNotFoundError:
-        # Configuration file not found. Returns empty dict to use hardcoded fallbacks.
         print(f"ERROR: Configuration file '{CONFIG_FILE}' not found. Cannot load configuration.")
         return {}
     except json.JSONDecodeError:
-        # File is found but corrupted/invalid JSON.
         print(f"ERROR: Configuration file '{CONFIG_FILE}' is not valid JSON. Cannot load configuration.")
         return {}
     except Exception as e:
-        # Catch any other unexpected error during config loading.
         print(f"ERROR: An unexpected error occurred during config loading: {e}. Cannot load configuration.")
         return {}
 
@@ -61,35 +58,47 @@ file_path = "/home/pi/data/ahtx0/env_data.json"
 # -----------------------------------------------------------------------------
 
 
+# --- Initialize variables to None (indicating unread/failed state) ---
+temperature = None
+humidity = None
+pressure = None
+
+
 # -----------------------------
 # Initialize the AHTx0 sensor and read values
 # -----------------------------
 try:
     # board.I2C will only work if running on a device with i2c enabled
-    i2c = board.I2C() 
+    i2c = board.I2C()  
     sensor = adafruit_ahtx0.AHTx0(i2c)
 
     # Read sensor values (no offsets applied as per request)
+    # If this succeeds, temperature/humidity will be float values.
     temperature = float(sensor.temperature)
     humidity = float(sensor.relative_humidity)
     pressure = None  # AHTx0 has no pressure sensor
 
-except NameError:
+except NameError as e:
     # This handles the case where board/adafruit_ahtx0 failed to import
-    print("CRITICAL ERROR: Hardware libraries not found. Using zeroed data.")
-    temperature = 0.0
-    humidity = 0.0
-    pressure = None
+    print(f"CRITICAL ERROR: Hardware libraries not found. Cannot read sensor: {e}.")
+    # Variables remain None.
 except Exception as e:
     # This handles I2C connection/initialization errors
-    print(f"CRITICAL ERROR: Sensor initialization failed: {e}. Check wiring and I2C connection. Using zeroed data.")
-    temperature = 0.0
-    humidity = 0.0
-    pressure = None
+    print(f"CRITICAL ERROR: Sensor initialization failed: {e}. Check wiring and I2C connection.")
+    # Variables remain None.
 
 
 # -----------------------------
-# New record structure
+# CHECK IF DATA IS VALID BEFORE PROCEEDING
+# -----------------------------
+if temperature is None or humidity is None:
+    print("WARNING: Skipping data save because sensor read failed. Check previous logs for errors.")
+    # The script now exits gracefully without saving anything if data is None.
+    exit()
+
+
+# -----------------------------
+# New record structure (Only executes if data is NOT None)
 # -----------------------------
 env_json_data = {
     "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -115,34 +124,20 @@ try:
                 data = json.load(json_file)
             except json.JSONDecodeError:
                 print(f"WARNING: '{file_path}' is corrupted or empty. Starting new JSON structure.")
-                # 'data' remains {} for re-initialization logic below
             except Exception as e:
                 print(f"ERROR: Could not read existing data: {e}. Starting new JSON structure.")
-                # 'data' remains {}
 
-    # 2. Ensure base structure and update metadata fields (Node ID and Sensor name)
-    # This ensures the latest config/defaults are always written to the file.
+    # 2. Ensure base structure and update metadata fields
     if not isinstance(data, dict):
         data = {}
 
-    # Update metadata fields
     data["node_id"] = NODE_ID
     data["sensor"] = SENSOR_NAME
 
     # Ensure 'records' key exists and is a list
     if "records" not in data or not isinstance(data["records"], list):
-        # Initialize or fix the records list
         data["records"] = []
         print("WARNING: 'records' array was missing or invalid. Initializing new records list.")
 
     # 3. Append the new record
-    data["records"].append(env_json_data)
-
-    # 4. Write the updated data back to the file
-    with open(file_path, "w") as json_file:
-        # Use indent=4 for human readability
-        json.dump(data, json_file, indent=4)
-
-except Exception as e:
-    # This is the essential 'except' block that resolves the SyntaxError
-    print(f"CRITICAL ERROR: Failed to save data to file '{file_path}': {e}")
+    data
