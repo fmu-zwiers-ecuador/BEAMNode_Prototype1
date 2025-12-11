@@ -3,7 +3,10 @@ import os
 import sys
 
 # --- Configuration ---
-PYTHON_EXEC = "/usr/bin/env python3"
+# 🚨 FIX 1: Split the executable path and its arguments 
+PYTHON_EXEC = "/usr/bin/env"  # The actual executable
+PYTHON_ARGS = ["python3"]    # The argument for /usr/bin/env
+
 DETECT_SCRIPT = "/home/pi/BEAMNode_Prototype1/scripts/node/sensor_detection/detect.py"
 SCHEDULER_SCRIPT = "/home/pi/BEAMNode_Prototype1/scripts/node/scheduler.py"
 
@@ -15,8 +18,8 @@ def run_startup_sequence():
     print(f"Executing one-time startup script: {os.path.basename(DETECT_SCRIPT)}")
     
     try:
-        # Blocks until detect.py finishes
-        result = subprocess.run([PYTHON_EXEC, DETECT_SCRIPT], 
+        # 🚨 FIX 2: Pass the command as [EXECUTABLE] + [ARGS] + [SCRIPT_PATH]
+        result = subprocess.run([PYTHON_EXEC] + PYTHON_ARGS + [DETECT_SCRIPT], 
                                 stdout=sys.stdout, 
                                 stderr=sys.stderr, 
                                 check=True)
@@ -33,7 +36,8 @@ def run_startup_sequence():
     print(f"\nLaunching continuous service: {os.path.basename(SCHEDULER_SCRIPT)}")
     
     try:
-        scheduler_process = subprocess.Popen([PYTHON_EXEC, SCHEDULER_SCRIPT], 
+        # 🚨 FIX 3: Pass the command as [EXECUTABLE] + [ARGS] + [SCRIPT_PATH]
+        scheduler_process = subprocess.Popen([PYTHON_EXEC] + PYTHON_ARGS + [SCHEDULER_SCRIPT], 
                                              stdout=sys.stdout,
                                              stderr=sys.stderr)
         
