@@ -161,6 +161,7 @@ def main():
     RETRY_INTERVAL = 300  # seconds
     while True:
         time.sleep(RETRY_INTERVAL)
+        print("=== Entering retry loop for failed transfers ===")
         # re-ping failed nodes 
         ping_dead_nodes()
         # retry failed transfers
