@@ -26,4 +26,3 @@ sudo apt install batctl
 
 #update and upgrade system
 sudo apt update && sudo apt upgrade 
-
