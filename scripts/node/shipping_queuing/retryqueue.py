@@ -140,23 +140,31 @@ def main():
     ping_nodes()
 
     # request data from non failed nodes first
+
+    log("=== Initial data transfer attempt ===")
     for node in nodes.values():
+        log(f"Attempting data transfer from {node.name} ({node.ip})")
         if node.alive and not node.transfer_fail:
             success = rsync_shipped_data(node.ip, node.name)
+            log(f"Node {node.name} transfer success: {success}")
             if not success:
                 node.transfer_fail = True
+                log(f"Node {node.name} transfer fail: {success}")
 
     # periodically retry failed nodes
     RETRY_INTERVAL = 300  # seconds
     while True:
         time.sleep(RETRY_INTERVAL)
-        # re-ping failed nodes
+        # re-ping failed nodes 
         ping_dead_nodes()
         # retry failed transfers
         log("=== Retrying failed data transfers ===")
         for node in nodes.values():
+            log(f"Attempting data transfer from {node.name} ({node.ip})")
             if node.alive and node.transfer_fail:
                 success = rsync_shipped_data(node.ip, node.name)
+                log(f"Node {node.name} transfer success: {success}")
                 if success:
                     node.transfer_fail = False
+                    log(f"Node {node.name} transfer fail: {success}")
   
