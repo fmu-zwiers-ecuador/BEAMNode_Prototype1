@@ -298,32 +298,29 @@ devices = detect_i2c_sensors()
 
 
 def detect_audiomoth_simple():
-    # Include root’s media dirs in case the script runs with sudo
-    roots = [
-        "/media/pi",
-        "/media/root",
-        "/media",
-        "/mnt",
-        "/run/media/pi",
-        "/run/media/root",
-    ]
+    """Detect AudioMoth by lsusb only."""
+    try:
+        result = subprocess.run(
+            ["lsusb"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
 
-    for root in roots:
-        if not os.path.isdir(root):
-            continue
-
-        # Walk subdirectories so we can find /media/root/AUDIOMOTH, etc.
-        for dirpath, dirnames, filenames in os.walk(root):
-            if os.path.ismount(dirpath):
-                # Mark enabled and remember where it is
+        for line in result.stdout.splitlines():
+            if "audiomoth" in line.lower():
+                # AudioMoth detected
                 set_config_flag(CONFIG_PATH, "audio", "enabled", True)
-                set_config_flag(CONFIG_PATH, "audio", "mount_path", dirpath)
-                return True, f"AudioMoth USB storage at {dirpath}"
+                set_config_flag(CONFIG_PATH, "audio", "mount_path", None)
+                return True, f"AudioMoth detected: {line.strip()}"
 
-    # If we get here, nothing was found – explicitly mark audio disabled
+    except Exception as e:
+        print(f"[detect] lsusb failed: {e}")
+
+    # Nothing found
     set_config_flag(CONFIG_PATH, "audio", "enabled", False)
     set_config_flag(CONFIG_PATH, "audio", "mount_path", None)
-    return False, "No USB storage mount found."
+    return False, "No AudioMoth USB device found."
 
 
 ok_am, info_am = detect_audiomoth_simple()
