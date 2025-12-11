@@ -1,23 +1,28 @@
 #!/bin/bash
-set -euo pipefail
 
-sudo apt update
+# Core for Adafruit
+sudo pip3 install adafruit-blinka --break-system-packages
 
-# System deps (PyAudio build deps + batctl)
-sudo apt install -y batctl python3-dev portaudio19-dev
+# install bme280 library
+sudo pip3 install adafruit-circuitpython-bme280 --break-system-packages
 
-# If you want the distro PyAudio, uncomment this line and remove the pip install below:
-# sudo apt install -y python3-pyaudio
+# install PyAudio library
+sudo apt install python3-pyaudio portaudio-dev -y
+sudo pip3 install pyaudio --break-system-packages
 
-# Python packages (system python; you’re opting into --break-system-packages)
-sudo python3 -m pip install --break-system-packages \
-  adafruit-blinka \
-  adafruit-circuitpython-bme280 \
-  adafruit-circuitpython-tsl2591 \
-  adafruit-circuitpython-ahtx0 \
-  pyaudio
+# install TSL2591 library
+pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
+sudo pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
 
-# If you truly need this specific library, make it python3 + consistent:
-sudo python3 -m pip install --break-system-packages python-tsl2591
+# Installation for the original Python TSL2591 library
+pip install python-tsl2591
 
-sudo apt upgrade -y
+# install AHXT0 library
+pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
+sudo pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
+
+# installing Batctl packages
+sudo apt install batctl
+
+#update and upgrade system
+sudo apt update && sudo apt upgrade 
