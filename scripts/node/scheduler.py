@@ -13,6 +13,14 @@ from datetime import datetime, timedelta
 CONFIG_PATH = "./config.json"
 NODE_DIR = "."
 
+# create /home/pi/data if it doesn't exist
+data_dir = "/home/pi/data"
+os.makedirs(data_dir, exist_ok=True)
+
+# create /home/pi/shipping if it doesn't exist
+shipping_dir = "/home/pi/shipping"
+os.makedirs(shipping_dir, exist_ok=True)
+
 # Track last run times
 last_run_times = {}
 
