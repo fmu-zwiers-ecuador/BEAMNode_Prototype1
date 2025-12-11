@@ -51,6 +51,13 @@ REMOTE_SHIP_DIR = "/home/pi/shipping"
 
 LOG_FILE = "/home/pi/queue_data_request.log"
 
+# check that all nodes have succeeded transfers
+def check_success():
+    for node in nodes:
+        if node.transfer_fail:
+            return False
+    return True
+
 # -----------------------------
 # UTILITIES
 # -----------------------------
@@ -159,7 +166,7 @@ def main():
 
     # periodically retry failed nodes
     RETRY_INTERVAL = 300  # seconds
-    while True:
+    while not check_success():
         time.sleep(RETRY_INTERVAL)
         print("=== Entering retry loop for failed transfers ===")
         # re-ping failed nodes 
@@ -174,5 +181,7 @@ def main():
                 if success:
                     node.transfer_fail = False
                     log(f"Node {node.name} transfer fail: {success}")
+    
+    log("=== All node data transfers succeeded ===")
   
 main()
