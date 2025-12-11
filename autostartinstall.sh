@@ -4,11 +4,11 @@
 
 # --- Configuration ---
 SERVICE_FILE="beamnode.service"
-LAUNCHER_RELATIVE_PATH="scripts/node/launcher.py"
+LAUNCHER_RELATIVE_PATH="/home/pi/BEAMNode_Prototype1/scripts/node/launcher.py"
 
 # Absolute system destinations
 SERVICE_DESTINATION="/etc/systemd/system/$SERVICE_FILE"
-LAUNCHER_FULL_PATH="/home/pi/BEAMNode_Prototype1/$LAUNCHER_RELATIVE_PATH"
+LAUNCHER_FULL_PATH="$LAUNCHER_RELATIVE_PATH"
 
 echo "Starting BEAMNode Service Installation..."
 

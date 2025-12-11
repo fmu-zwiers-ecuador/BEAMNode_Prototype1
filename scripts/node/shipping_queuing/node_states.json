@@ -1,0 +1,32 @@
+{
+    "node1": {
+        "ip": "192.168.1.1",
+        "node_state": "dead",
+        "transfer_fail": false
+    },
+
+    "node2": {
+        "ip": "192.168.1.2",
+        "node_state": "dead",
+        "transfer_fail": false
+    },
+
+    "node3": {
+        "ip": "192.168.1.3",
+        "node_state": "dead",
+        "transfer_fail": false
+    },
+
+    "node4": {
+        "ip": "192.168.1.4",
+        "node_state": "dead",
+        "transfer_fail": false
+    },
+
+    "node5": {
+        "ip": "192.168.1.5",
+        "node_state": "dead",
+        "transfer_fail": false
+    }
+
+}
