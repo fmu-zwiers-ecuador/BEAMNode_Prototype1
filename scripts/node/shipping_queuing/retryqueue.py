@@ -23,13 +23,20 @@ json_filepath = "./node_states.json"
 # read nodes from json file
 
 def load_nodes(json_filepath):
-    nodes = {}
+    nodes = []
     if os.path.exists(json_filepath):
         with open(json_filepath, "r") as f:
             data = json.load(f)
             for name, info in data.items():
-                node = Node(name, info["ip"], )
-                nodes[name] = node
+                ip = info["ip"]
+                transfer = info.get("transfer_fail")
+                state = info.get("state", "unknown")
+
+                print(f"Loaded node: {name}, IP: {ip}, transfer_fail: {transfer}, state: {state}")
+
+                node = Node(name, ip, transfer, state)
+                nodes.append(node)
+                
     return nodes
 
 nodes = load_nodes(json_filepath)
@@ -106,24 +113,24 @@ def rsync_shipped_data(ip: str, hostname: str) -> None:
         return False
     
 def ping_nodes():
-    for node in nodes.values():
+    for node in nodes:
         latency = ping_latency(node.ip)
         node
         if latency is not None:
             log(f"Node {node.name} ({node.ip}) latency: {latency} ms")
             # set node to alive
-            node.alive = True
+            node.state = "alive"
         else:
             log(f"Node {node.name} ({node.ip}) is unreachable")
-            node.alive = False
+            node.state = "dead"
 
 def ping_dead_nodes():
-    for node in nodes.values():
-        if not node.alive:
+    for node in nodes:
+        if not node.state == "alive":
             latency = ping_latency(node.ip)
             if latency is not None:
                 log(f"Node {node.name} ({node.ip}) is back online with latency: {latency} ms")
-                node.alive = True
+                node.state = "alive"
 
 # ------------------------------
 # MAIN LOGIC
@@ -134,7 +141,6 @@ def main():
 
     # Load nodes from JSON
     # Measure latency for all nodes
-    nodes = load_nodes(json_filepath)
 
     # find alive and dead nodes
     ping_nodes()
@@ -142,7 +148,7 @@ def main():
     # request data from non failed nodes first
 
     log("=== Initial data transfer attempt ===")
-    for node in nodes.values():
+    for node in nodes:
         log(f"Attempting data transfer from {node.name} ({node.ip})")
         if node.alive and not node.transfer_fail:
             success = rsync_shipped_data(node.ip, node.name)
@@ -159,7 +165,7 @@ def main():
         ping_dead_nodes()
         # retry failed transfers
         log("=== Retrying failed data transfers ===")
-        for node in nodes.values():
+        for node in nodes:
             log(f"Attempting data transfer from {node.name} ({node.ip})")
             if node.alive and node.transfer_fail:
                 success = rsync_shipped_data(node.ip, node.name)
