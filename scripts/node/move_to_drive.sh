@@ -4,7 +4,7 @@ set -euo pipefail
 # ========= CONFIG =========
 PI_USER="pi"
 
-SRC_DIR="/home/pi/BEAMNode_Prototype1/scripts/node/shipping_queuing/shipping"
+SRC_DIR="/home/pi/shipping"
 MOUNT_POINT="/media/pi/BEAMdrive"
 DEST_DIR="$MOUNT_POINT/shipping_archive"
 LOG_FILE="/home/pi/logs/shipping_move.log"
