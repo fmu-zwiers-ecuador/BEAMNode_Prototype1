@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#update and upgrade system
+sudo apt update && sudo apt upgrade 
+
 # Core for Adafruit
 sudo pip3 install adafruit-blinka --break-system-packages
 
@@ -24,5 +27,3 @@ sudo pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
 # installing Batctl packages
 sudo apt install batctl
 
-#update and upgrade system
-sudo apt update && sudo apt upgrade 
