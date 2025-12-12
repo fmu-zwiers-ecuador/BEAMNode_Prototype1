@@ -1,29 +1,24 @@
 #!/bin/bash
+set -euo pipefail
 
-#update and upgrade system
-sudo apt update && sudo apt upgrade 
+sudo apt update
+sudo apt install -y \
+  python3-pip python3-venv \
+  portaudio19-dev python3-pyaudio \
+  batctl
 
-# Core for Adafruit
-sudo pip3 install adafruit-blinka --break-system-packages
+# Upgrade pip tooling (system-wide). --break-system-packages is for Debian/RPi OS policy.
+sudo python3 -m pip install --upgrade pip setuptools wheel --break-system-packages
 
-# install bme280 library
-sudo pip3 install adafruit-circuitpython-bme280 --break-system-packages
+# Adafruit + sensors
+sudo python3 -m pip install --break-system-packages \
+  adafruit-blinka \
+  adafruit-circuitpython-bme280 \
+  adafruit-circuitpython-tsl2591 \
+  python-tsl2591 \
+  adafruit-circuitpython-ahtx0
 
-# install PyAudio library
-sudo apt install portaudio19-dev python3-pyaudio -y
-sudo pip3 install pyaudio --break-system-packages
+# PyAudio (pip version) - optional, since python3-pyaudio is already installed via apt
+sudo python3 -m pip install --break-system-packages pyaudio
 
-# install TSL2591 library
-pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
-sudo pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
-
-# Installation for the original Python TSL2591 library
-pip install python-tsl2591 --break-system-packages
-
-# install AHXT0 library
-pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
-sudo pip3 install adafruit-circuitpython-ahtx0 --break-system-packages
-
-# installing Batctl packages
-sudo apt install batctl
-
+sudo apt upgrade -y
