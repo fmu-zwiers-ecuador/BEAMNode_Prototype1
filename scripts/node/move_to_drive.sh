@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+sudo set -euo pipefail
 
 # ========= CONFIG =========
 PI_USER="pi"
@@ -32,7 +32,7 @@ if [[ ! -d "$MOUNT_POINT" ]]; then
 fi
 
 # --- create destination folder ---
-mkdir -p "$DEST_DIR"
+sudo mkdir -p "$DEST_DIR"
 
 # --- check if source is empty ---
 if [[ -z "$(ls -A "$SRC_DIR")" ]]; then
@@ -51,7 +51,7 @@ mv "$SRC_DIR"/* "$DEST_DIR"/
 log "Move complete."
 
 # --- ownership sanity ---
-chown -R "$PI_USER:$PI_USER" "$DEST_DIR"
+sudo chown -R "$PI_USER:$PI_USER" "$DEST_DIR"
 
 log "Permissions fixed."
 log "=== Shipping move finished ==="
