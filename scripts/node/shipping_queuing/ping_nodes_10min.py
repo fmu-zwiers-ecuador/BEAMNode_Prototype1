@@ -4,8 +4,8 @@ import os
 import json
 from datetime import datetime
 
-JSON_FILEPATH = "/home/pi/Node_status.json"
-LOG_FILE = "/home/pi/queue_data_request.log"
+JSON_FILEPATH = "/home/pi/node_states.json"
+LOG_FILE = "/home/pi/logs/ping.log"
 
 def log(message: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
