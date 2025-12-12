@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timedelta
 
 CONFIG_PATH = "./config.json"
-NODE_DIR = "."
+NODE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node/"
 LOG_FILE = "/home/pi/logs/scheduler.log"
 
 # log funciton
