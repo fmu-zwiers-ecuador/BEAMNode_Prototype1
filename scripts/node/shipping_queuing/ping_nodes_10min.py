@@ -4,7 +4,7 @@ import os
 import json
 from datetime import datetime
 
-JSON_FILEPATH = "/home/pi/node_states.json"
+JSON_FILEPATH = "/home/pi/BEAMNode_Prototype1/scripts/node/shipping_queuing/node_states.json"
 LOG_FILE = "/home/pi/logs/ping.log"
 
 def log(message: str) -> None:
