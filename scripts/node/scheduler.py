@@ -10,27 +10,14 @@ import subprocess
 import time
 from datetime import datetime, timedelta
 
-<<<<<<< HEAD
-CONFIG_PATH = "./config.json"
+CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
 NODE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node/"
-=======
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
-NODE_DIR = "."
->>>>>>> 81e04ca (Initial commit)
 LOG_FILE = "/home/pi/logs/scheduler.log"
-SKIP_KEYS = {"global"}
-
-# Map logical sensor names from config to their script paths (relative to NODE_DIR)
-SENSOR_MAP = {
-    "aht": os.path.join("ahtx0", "log_ahtx0_paramdata.py"),
-}
 
 # log funciton
 def log(msg):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] {msg}"
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(line + "\n")
     print(line)
@@ -58,11 +45,7 @@ def load_config():
         return json.load(f)
 
 def find_sensor_script(sensor):
-    """Find the Python script for a sensor."""
-    # explicit map overrides directory scan
-    if sensor in SENSOR_MAP:
-        return SENSOR_MAP[sensor]
-
+    """Find the Python script inside each sensor’s directory."""
     sensor_dir = os.path.join(NODE_DIR, sensor)
     if not os.path.isdir(sensor_dir):
         log(f"[WARN] Directory not found for sensor '{sensor}'")
@@ -99,11 +82,7 @@ def scheduler_loop():
 
     # Initialize last run times to "now" so they don't all start instantly
     now = datetime.now()
-    for sensor, params in config.items():
-        if sensor in SKIP_KEYS or not isinstance(params, dict):
-            continue
-        if params.get("frequency") is None or not params.get("enabled", True):
-            continue
+    for sensor in config.keys():
         last_run_times[sensor] = now
 
     while True:
@@ -111,16 +90,11 @@ def scheduler_loop():
         config = load_config()  # reload in case user updates config.json
 
         for sensor, params in config.items():
-            if sensor in SKIP_KEYS or not isinstance(params, dict):
-                continue
             freq_min = params.get("frequency")
             enabled = params.get("enabled", True)
             if freq_min is None or not enabled:
                 continue  # skip if no frequency defined
             last_run = last_run_times.get(sensor)
-            if last_run is None:
-                last_run_times[sensor] = now
-                last_run = now
             next_run = last_run + timedelta(minutes=freq_min)
 
             if now >= next_run:
