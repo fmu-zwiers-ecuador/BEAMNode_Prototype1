@@ -1,14 +1,13 @@
 #!/bin/bash
 
 ### ============================================================
-### BEAM Automatic Cron Setup Script
-### Creates crontab for:
-###   - ping_nodes_10min.py   (every 10 minutes)
-###   - retryqueue.py         (daily at 19:00)
+### BEAM Automatic Cron Setup Script (User: pi)
 ###
-### LOG FILES GO TO: /home/pi/logs/
-### If you move files later, update:
-###   BASE_DIR, PING_PY, RETRY_PY
+### Installs:
+###   - ping_nodes_10min.py (every 10 min)
+###   - retryqueue.py       (daily at 19:00)
+###
+### LOG FILES STORED BY PYTHON SCRIPTS ONLY — NO REDIRECTION
 ### ============================================================
 
 BASE_DIR="/home/pi/BEAMNode_Prototype1/scripts/node/shipping_queuing"
@@ -19,47 +18,53 @@ LOG_DIR="/home/pi/logs"
 PING_LOG="$LOG_DIR/ping.log"
 QUEUE_LOG="$LOG_DIR/queue.log"
 
-echo "=== BEAM CRON AUTO-SETUP STARTED ==="
+echo "=== BEAM CRON SETUP STARTED ==="
 
 ### ----------------------------------------
-### 1. Create /home/pi/logs folder + log files
+### 1. Create /home/pi/logs folder for Python logs
 ### ----------------------------------------
-echo "[INFO] Creating log directory and log files..."
+echo "[INFO] Creating log directory..."
 
 mkdir -p "$LOG_DIR"
-
 touch "$PING_LOG"
 touch "$QUEUE_LOG"
 
 chmod 666 "$PING_LOG"
 chmod 666 "$QUEUE_LOG"
 
-echo "[INFO] Logs created in $LOG_DIR:"
-echo "   $PING_LOG"
-echo "   $QUEUE_LOG"
+echo "[INFO] Log directory ready: $LOG_DIR"
+
 
 ### ----------------------------------------
-### 2. Install cron jobs properly
+### 2. Install cron jobs FOR USER PI ONLY
 ### ----------------------------------------
-echo "[INFO] Installing cron jobs..."
+echo "[INFO] Installing cron jobs for user pi..."
 
-(
-crontab -l 2>/dev/null | grep -v "$PING_PY"
-crontab -l 2>/dev/null | grep -v "$RETRY_PY"
+# Get existing pi crontab
+EXISTING=$(crontab -l 2>/dev/null)
 
-echo "*/10 * * * * /usr/bin/python3 $PING_PY >> $PING_LOG 2>&1"
-echo "0 19 * * * /usr/bin/python3 $RETRY_PY >> $QUEUE_LOG 2>&1"
-) | crontab -
+# Remove old duplicate entries if script was run before
+CLEANED=$(echo "$EXISTING" | grep -v "$PING_PY" | grep -v "$RETRY_PY")
+
+# Put final cron table together
+echo "$CLEANED" > /tmp/beamcron.tmp
+echo "*/10 * * * * /usr/bin/python3 $PING_PY" >> /tmp/beamcron.tmp
+echo "0 19 * * * /usr/bin/python3 $RETRY_PY" >> /tmp/beamcron.tmp
+
+# Install as the pi user (NOT root)
+crontab /tmp/beamcron.tmp
+rm /tmp/beamcron.tmp
+
 
 ### ----------------------------------------
-### 3. Show final crontab
+### 3. Show final cron table for user pi
 ### ----------------------------------------
-echo "=== FINAL CRONTAB ==="
+echo "=== FINAL USER (pi) CRONTAB ==="
 crontab -l
-echo "======================"
+echo "================================"
 
 echo "=== SETUP COMPLETE ==="
 echo "Ping log:  $PING_LOG"
 echo "Queue log: $QUEUE_LOG"
 echo ""
-echo "[NOTE] If you move script paths later, update the variables at the top of this file."
+echo "[NOTE] Python scripts handle logs internally — no cron redirection needed."
