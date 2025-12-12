@@ -11,8 +11,13 @@ LOG_DIR="/home/pi/logs"
 
 SCHEDULER="$BASE/scheduler.py"
 SHIPPING="$BASE/shipping_queuing/shipping.py"
+MOVE_SCRIPT="$BASE/move_to_drive.sh"
 
-# shipping time: 18:00 = 6 PM daily
+# move time: 5:00 PM
+MOVE_MIN="0"
+MOVE_HOUR="17"
+
+# shipping time: 6:00 PM
 SHIP_MIN="0"
 SHIP_HOUR="18"
 
@@ -25,8 +30,9 @@ die() { echo "[!] $*" >&2; exit 1; }
 echo "[*] Running as: $(whoami)"
 
 # --- sanity checks ---
-[[ -f "$SCHEDULER" ]] || echo "[!] WARNING: missing $SCHEDULER"
-[[ -f "$SHIPPING"  ]] || echo "[!] WARNING: missing $SHIPPING"
+[[ -f "$SCHEDULER" ]]   || echo "[!] WARNING: missing $SCHEDULER"
+[[ -f "$SHIPPING"  ]]   || echo "[!] WARNING: missing $SHIPPING"
+[[ -f "$MOVE_SCRIPT" ]] || echo "[!] WARNING: missing $MOVE_SCRIPT"
 [[ -x "$PY" ]] || die "Python not found/executable at $PY"
 
 # --- create logs directory + files ---
@@ -37,6 +43,7 @@ echo "[*] Creating log files (if missing)"
 touch \
   "$LOG_DIR/scheduler.log" \
   "$LOG_DIR/shipping.log" \
+  "$LOG_DIR/shipping_move.log" \
   "$LOG_DIR/cron_install.log"
 
 # --- set ownership & permissions ---
@@ -54,9 +61,13 @@ chmod 664 "$LOG_DIR"/*.log
 BEGIN_MARK="# === BEAMNode cron (managed) BEGIN ==="
 END_MARK="# === BEAMNode cron (managed) END ==="
 
-CRON_SCHED="@reboot /bin/bash -lc 'sleep $BOOT_DELAY; $PY $SCHEDULER >> $LOG_DIR/scheduler.log 2>&1'"
-CRON_SHIP="$SHIP_MIN $SHIP_HOUR * * * /bin/bash -lc '$PY $SHIPPING >> $LOG_DIR/shipping.log 2>&1'"
 CRON_BOOT_NOTE="@reboot /bin/bash -lc 'sleep 5; echo \"[\$(date -Iseconds)] cron boot hook ran\" >> $LOG_DIR/cron_install.log'"
+
+CRON_SCHED="@reboot /bin/bash -lc 'sleep $BOOT_DELAY; $PY $SCHEDULER >> $LOG_DIR/scheduler.log 2>&1'"
+
+CRON_MOVE="$MOVE_MIN $MOVE_HOUR * * * /bin/bash -lc '$MOVE_SCRIPT >> $LOG_DIR/shipping_move.log 2>&1'"
+
+CRON_SHIP="$SHIP_MIN $SHIP_HOUR * * * /bin/bash -lc '$PY $SHIPPING >> $LOG_DIR/shipping.log 2>&1'"
 
 echo "[*] Installing cron jobs into PI user crontab"
 
@@ -73,6 +84,7 @@ $CLEANED
 $BEGIN_MARK
 $CRON_BOOT_NOTE
 $CRON_SCHED
+$CRON_MOVE
 $CRON_SHIP
 $END_MARK
 EOF
