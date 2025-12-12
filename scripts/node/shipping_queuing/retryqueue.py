@@ -11,7 +11,7 @@ from datetime import datetime
 JSON_FILEPATH = "/home/pi/BEAMNode_Prototype1/scripts/node/shipping_queuing/node_states.json"
 SUPERVISOR_DATA_ROOT = "/home/pi/data"
 REMOTE_SHIP_DIR = "/home/pi/shipping"
-LOG_FILE = "/home/pi/dailyqueue.log"
+LOG_FILE = "/home/pi/logs/queue.log"
 
 MAX_RETRIES = 5
 PING_COUNT = 1
