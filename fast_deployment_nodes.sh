@@ -3,7 +3,7 @@
 # This script executes the autostartinstall.sh script on all Node Pis via SSH.
 
 # --- CONFIGURATION (Update these variables) ---
-INSTALLER_SCRIPT="autostartinstall.sh"
+INSTALLER_SCRIPT="installation_bash/autostartinstall.sh"
 REPO_DIR="BEAMNode_Prototype1"
 USER="pi" 
 

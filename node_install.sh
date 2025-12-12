@@ -22,13 +22,13 @@ echo "**************************************************"
 echo "Setting up BEAMNode service to run on startup..."
 echo "**************************************************"
 
-sudo chmod +x autostartinstall.sh
+sudo chmod +x ./installation_bash/autostartinstall.sh
 sudo chown -R pi:pi /home/pi/BEAMNode_Prototype1/logs
-sudo ./autostartinstall.sh
+sudo bash ./installation_bash/autostartinstall.sh
 
 # batman installation
 echo "**************************************************"
 echo "Installing batman-adv for mesh networking..."
 echo "**************************************************"
 
-sudo bash ./scripts/Batman_mesh/install_batman.sh
+sudo bash ./scripts/Batman_mesh/install-batman.sh
