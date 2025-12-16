@@ -10,7 +10,7 @@
 import spidev  # For interfacing with SPI devices from user space via the spidev linux kernel driver.
 import RPi.GPIO as GPIO
 import subprocess
-import logging
+import logging 
 import re
 import os, time, json, logging, spidev, RPi.GPIO as GPIO
 import json   
