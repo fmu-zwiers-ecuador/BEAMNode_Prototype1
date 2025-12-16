@@ -11,7 +11,7 @@
   "enabled": false,
   "directory": "tsl2591",
   "file_name": "lux_data.json",
-  "frequency": 5,
+  "frequency": 60,
   "i2c_bus": null,
   "address_hex": null,
   "record_schema": {
@@ -24,6 +24,7 @@
   "enabled": false,
   "directory": "aht",
   "file_name": "aht_env.json",
+  "frequency": 60,
   "i2c_bus": null,
   "address_hex": "0x38",
   "record_schema": {
@@ -38,7 +39,7 @@
     "enabled": false,
     "directory": "bme280",
     "file_name": "env_data.json",
-    "frequency": 5,
+    "frequency": 60,
     "spi": {
       "sck_pin": "SCK",
       "mosi_pin": "MOSI",
@@ -59,6 +60,7 @@
     "directory": "audio",
     "file_prefix": "recording_",
     "duration_sec": 10,
+    "frequency": 60,
     "sample_rate": 48000,
     "channels": 1,
     "format": "int16",

@@ -10,8 +10,25 @@ import subprocess
 import time
 from datetime import datetime, timedelta
 
-CONFIG_PATH = "./config.json"
-NODE_DIR = "."
+CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
+NODE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node/"
+LOG_FILE = "/home/pi/logs/scheduler.log"
+
+# log funciton
+def log(msg):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{ts}] {msg}"
+    with open(LOG_FILE, "a") as f:
+        f.write(line + "\n")
+    print(line)
+
+# create /home/pi/data if it doesn't exist
+data_dir = "/home/pi/data"
+os.makedirs(data_dir, exist_ok=True)
+
+# create /home/pi/shipping if it doesn't exist
+shipping_dir = "/home/pi/shipping"
+os.makedirs(shipping_dir, exist_ok=True)
 
 # Track last run times
 last_run_times = {}
@@ -31,14 +48,14 @@ def find_sensor_script(sensor):
     """Find the Python script inside each sensor’s directory."""
     sensor_dir = os.path.join(NODE_DIR, sensor)
     if not os.path.isdir(sensor_dir):
-        print(f"[WARN] Directory not found for sensor '{sensor}'")
+        log(f"[WARN] Directory not found for sensor '{sensor}'")
         return None
 
     for file in os.listdir(sensor_dir):
         if file.endswith(".py"):
             return os.path.join(sensor_dir, file)
 
-    print(f"[WARN] No .py script found in '{sensor_dir}'")
+    log(f"[WARN] No .py script found in '{sensor_dir}'")
     return None
 
 def run_sensor_once(sensor):
@@ -47,20 +64,20 @@ def run_sensor_once(sensor):
     if not script_path:
         return
 
-    print(f"[INFO] Running {sensor} at {datetime.now().strftime('%H:%M:%S')}")
+    log(f"[INFO] Running {sensor} at {datetime.now().strftime('%H:%M:%S')}")
     result = subprocess.run(["python3", script_path], capture_output=True, text=True)
 
     # You can log result.stdout/result.stderr here if needed
     if result.returncode == 0:
-        print(f"[INFO] {sensor} finished successfully.")
+        log(f"[INFO] {sensor} finished successfully.")
     else:
-        print(f"[ERROR] {sensor} exited with code {result.returncode}")
-        print(result.stderr)
+        log(f"[ERROR] {sensor} exited with code {result.returncode}")
+        log(result.stderr)
 
 
 
 def scheduler_loop():
-    print("[INFO] Frequency-based Scheduler started")
+    log("[INFO] Frequency-based Scheduler started")
     config = load_config()
 
     # Initialize last run times to "now" so they don't all start instantly
@@ -83,6 +100,7 @@ def scheduler_loop():
             if now >= next_run:
                 run_sensor_once(sensor)
                 last_run_times[sensor] = datetime.now()
+            time.sleep(1)  # brief sleep to avoid tight loop
     
                         
         time.sleep(5)  # check every 5 seconds
@@ -90,8 +108,9 @@ def scheduler_loop():
 if __name__ == "__main__":
     try:
         # wait until start time
+        log(f"[INFO] Scheduler will start at {start_time.strftime('%H:%M:%S')}")
         while datetime.now() < start_time:
             time.sleep(1)
         scheduler_loop()
     except KeyboardInterrupt:
-        print("\n[INFO] Scheduler shutting down gracefully.")
+        log("\n[INFO] Scheduler shutting down gracefully.")
