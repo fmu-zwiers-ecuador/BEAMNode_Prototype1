@@ -32,6 +32,10 @@ timestamp = datetime.now(timezone.utc).isoformat()
 file_prefix = audio_config.get("file_prefix", "recording_")
 wav_filename = os.path.join(directory, f"{file_prefix}{timestamp}.wav")
 
+# replace : with - in file name
+
+wav_filename = str.replace(":", "-")
+
 # Recording parameters
 DURATION = audio_config.get("duration_sec", 10)
 RATE = audio_config.get("sample_rate", 48000)
