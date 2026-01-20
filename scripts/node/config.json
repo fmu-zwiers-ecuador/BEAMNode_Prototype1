@@ -9,6 +9,7 @@
 
   "tsl2591": {
   "enabled": false,
+  "script_name": "log_lux_data.py",
   "directory": "tsl2591",
   "file_name": "lux_data.json",
   "frequency": 60,
@@ -23,6 +24,7 @@
 "aht": {
   "enabled": false,
   "directory": "aht",
+  "script_name": "log_ahtx0_paramdata.py",
   "file_name": "aht_env.json",
   "frequency": 60,
   "i2c_bus": null,
@@ -38,6 +40,7 @@
   "bme280": {
     "enabled": false,
     "directory": "bme280",
+    "script_name": "log_env_data.py",
     "file_name": "env_data.json",
     "frequency": 60,
     "spi": {

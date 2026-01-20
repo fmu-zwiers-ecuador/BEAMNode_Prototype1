@@ -14,6 +14,10 @@ CONFIG_PATH = "/home/pi/BEAMNode_Prototype1/scripts/node/config.json"
 NODE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node/"
 LOG_FILE = "/home/pi/logs/scheduler.log"
 
+FILE_NAMES = {
+
+}
+
 # log funciton
 def log(msg):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -46,14 +50,17 @@ def load_config():
 
 def find_sensor_script(sensor):
     """Find the Python script inside each sensor’s directory."""
+    config = load_config()
     sensor_dir = os.path.join(NODE_DIR, sensor)
+
+    params = config.get(sensor)
     if not os.path.isdir(sensor_dir):
         log(f"[WARN] Directory not found for sensor '{sensor}'")
         return None
 
     for file in os.listdir(sensor_dir):
-        if file.endswith(".py"):
-            return os.path.join(sensor_dir, file)
+        if file.equals(params["script_name"]):
+            return file
 
     log(f"[WARN] No .py script found in '{sensor_dir}'")
     return None
