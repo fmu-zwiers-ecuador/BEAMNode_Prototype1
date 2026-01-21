@@ -219,7 +219,7 @@ addr_table = {
 }
 
 # Try both buses; some nodes use i2c-1, others i2c-2.
-CANDIDATE_I2C_BUSES = (1, 2)
+CANDIDATE_I2C_BUSES = (1)
 
 logging.basicConfig(
     filename='detect_tsl2591.log',
