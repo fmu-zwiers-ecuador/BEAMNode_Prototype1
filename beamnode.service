@@ -1,5 +1,5 @@
 [Unit]
-Description=BEAMNode Startup Services (Detector and Scheduler)
+Description=BEAMNode Startup Services (Detect, Scheduler, Shipping)
 After=network.target
 
 [Service]
@@ -7,7 +7,11 @@ User=pi
 WorkingDirectory=/home/pi/BEAMNode_Prototype1/scripts/node
 ExecStart=/usr/bin/env python3 /home/pi/BEAMNode_Prototype1/scripts/node/launcher.py
 Restart=always
+RestartSec=5
 Type=simple
+
+StandardOutput=inherit
+StandardError=inherit
 
 [Install]
 WantedBy=multi-user.target
