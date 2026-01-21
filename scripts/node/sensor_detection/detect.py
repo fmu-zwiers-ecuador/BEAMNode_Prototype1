@@ -278,7 +278,7 @@ def scan_all_i2c_buses(bus):
 
 def detect_i2c_sensors():
     """Detect sensors on all I2C buses and update config."""
-    found_addrs, addr_to_buses = scan_all_i2c_buses()
+    found_addrs, addr_to_buses = scan_all_i2c_buses(CANDIDATE_I2C_BUSES)
     detected = []
 
     for sensor_name, possible_addrs in addr_table.items():
