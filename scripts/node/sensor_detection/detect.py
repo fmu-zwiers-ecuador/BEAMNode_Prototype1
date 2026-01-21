@@ -214,7 +214,7 @@ except Exception as e:
 # TSL2591 may appear at 0x29 or 0x3A depending on board.
 # AHT20/21 uses 0x38.
 addr_table = {
-    "tsl2591": [0x29, 0x3A],
+    "tsl2591": [0x29],
     "aht": [0x38],
 }
 
