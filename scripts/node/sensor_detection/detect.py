@@ -241,24 +241,38 @@ def scan_i2c(busnum):
     except Exception:
         return -1
 
-def scan_all_i2c_buses(buses=CANDIDATE_I2C_BUSES):
+def scan_all_i2c_buses(bus):
     """Scan all available I2C buses and collect found addresses."""
     all_found_addrs = set()
     addr_to_buses = {}
 
-    for bus in buses:
-        if not os.path.exists(f"/dev/i2c-{bus}"):
-            continue
+    if not os.path.exists(f"/dev/i2c-{bus}"):
+        return -1
 
-        adds = scan_i2c(bus)
-        if adds == -1:
-            continue
+    adds = scan_i2c(bus)
+    if adds == -1:
+        return adds
 
-        matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-        for m in matches:
-            addr = int(m, 16)
-            all_found_addrs.add(addr)
-            addr_to_buses.setdefault(addr, set()).add(bus)
+    matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+    for m in matches:
+        addr = int(m, 16)
+        all_found_addrs.add(addr)
+        addr_to_buses.setdefault(addr, set()).add(bus)
+    
+    # buses=CANDIDATE_I2C_BUSES
+    # for bus in buses:
+    #     if not os.path.exists(f"/dev/i2c-{bus}"):
+    #         continue
+
+    #     adds = scan_i2c(bus)
+    #     if adds == -1:
+    #         continue
+
+    #     matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
+    #     for m in matches:
+    #         addr = int(m, 16)
+    #         all_found_addrs.add(addr)
+    #         addr_to_buses.setdefault(addr, set()).add(bus)
 
     return all_found_addrs, addr_to_buses
 
