@@ -8,6 +8,12 @@ All parameters are loaded from config.json. Images and JSON metadata are saved
 under /home/pi/data/camera/.
 """
 
+import sys
+from pathlib import Path
+
+VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
+sys.path.insert(0, str(VENDOR_DIR))
+
 import os
 import json
 import time

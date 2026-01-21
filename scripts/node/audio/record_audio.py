@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
+sys.path.insert(0, str(VENDOR_DIR))
+
 # record.py — Unified Audio Recorder for BEAM
 # Author: Raiz Mohammed / Jaidyn Edwards
 # Updated: 2025-10-20

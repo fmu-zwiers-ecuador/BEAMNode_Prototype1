@@ -6,6 +6,11 @@
 # Collaborators:
 #
 #********************************************************************#
+import sys
+from pathlib import Path
+
+VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
+sys.path.insert(0, str(VENDOR_DIR))
 
 import spidev  # For interfacing with SPI devices from user space via the spidev linux kernel driver.
 import RPi.GPIO as GPIO
