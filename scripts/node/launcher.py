@@ -2,7 +2,7 @@
 # launcher.py - BEAMNode service launcher
 # 1. Runs detection on startup (sensor_detection/detect.py)
 # 2. Launches Scheduler in background (scheduler.py)
-# 3. Triggers Shipping daily at 13:00 (shipping_queuing/shipping.py)
+# 3. Triggers Shipping daily at 09:00 (shipping_queuing/shipping.py)
 
 import subprocess
 import os
@@ -89,7 +89,7 @@ def main_loop():
     # State tracking for daily shipping
     last_ship_date = None
 
-    print("[launcher] Entering Supervisor Loop (Monitoring Scheduler + 13:00 Shipping)")
+    print("[launcher] Entering Supervisor Loop (Monitoring Scheduler + 09:00 Shipping)")
 
     while True:
         current_time = datetime.now()
@@ -100,12 +100,12 @@ def main_loop():
             print(f"[launcher] ALERT: Scheduler crashed (code {scheduler_process.returncode}). Restarting...")
             scheduler_process = start_scheduler_background()
 
-        # --- B. Check for 13:00 Shipping (1:00 PM) ---
-        # Run if hour is 13 AND we haven't shipped yet today
+        # --- B. Check for 09:00 Shipping (9:00 AM) ---
+        # Run if hour is 9 AND we haven't shipped yet today
         today_str = current_time.strftime("%Y-%m-%d")
         
-        if current_time.hour == 13 and last_ship_date != today_str:
-            print("[launcher] It is 13:00. Starting Daily Shipping...")
+        if current_time.hour == 9 and last_ship_date != today_str:
+            print("[launcher] It is 09:00. Starting Daily Shipping...")
             run_script_wait(SHIPPING_SCRIPT)
             last_ship_date = today_str # Mark as done for today
             print("[launcher] Shipping finished. Waiting for next schedule.")
