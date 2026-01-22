@@ -3,7 +3,7 @@
 # 'i2cdetect' command to scan i2c ports for sensors. It should return
 # text detailing which sensors are currently online.
 #
-# Collaborators:
+# Collaborators: Jaylen Small, Alex Lance
 #
 #********************************************************************#
 
@@ -218,7 +218,7 @@ addr_table = {
     "aht": [0x38],
 }
 
-# Try both buses; some nodes use i2c-1, others i2c-2.
+# Stores the buses for i2c, but for now only bus 1 needs to be checked
 CANDIDATE_I2C_BUSES = (1)
 
 logging.basicConfig(
@@ -241,6 +241,7 @@ def scan_i2c(busnum):
     except Exception:
         return -1
 
+# Modified by Jaylen Small
 def scan_all_i2c_buses(bus):
     """Scan all available I2C buses and collect found addresses."""
     all_found_addrs = set()
@@ -258,21 +259,6 @@ def scan_all_i2c_buses(bus):
         addr = int(m, 16)
         all_found_addrs.add(addr)
         addr_to_buses.setdefault(addr, set()).add(bus)
-    
-    # buses=CANDIDATE_I2C_BUSES
-    # for bus in buses:
-    #     if not os.path.exists(f"/dev/i2c-{bus}"):
-    #         continue
-
-    #     adds = scan_i2c(bus)
-    #     if adds == -1:
-    #         continue
-
-    #     matches = re.findall(r"\b[0-9a-f]{2}\b", adds, re.IGNORECASE)
-    #     for m in matches:
-    #         addr = int(m, 16)
-    #         all_found_addrs.add(addr)
-    #         addr_to_buses.setdefault(addr, set()).add(bus)
 
     return all_found_addrs, addr_to_buses
 
