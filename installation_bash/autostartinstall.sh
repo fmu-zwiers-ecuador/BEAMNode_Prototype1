@@ -20,7 +20,6 @@ mkdir -p "/home/pi/shipping"
 mkdir -p "$LOG_DIR"
 
 # 3. Set Permissions
-# This allows the launcher to execute the sub-scripts
 echo "[2/4] Setting execution permissions..."
 chmod +x "$NODE_DIR/launcher.py"
 chmod +x "$NODE_DIR/scheduler.py"
@@ -49,4 +48,11 @@ fi
 # 5. Verification
 echo "[4/4] Verifying system status..."
 if systemctl is-active --quiet "$SERVICE_NAME"; then
-    echo "------------------------------------------------
+    echo "------------------------------------------------"
+    echo "🎉 SUCCESS: Installation Complete!"
+    echo "The Launcher is now running in the background."
+    echo "------------------------------------------------"
+else
+    echo "⚠️ Service installed but failed to start."
+    echo "Check logs with: journalctl -u $SERVICE_NAME -f"
+fi
