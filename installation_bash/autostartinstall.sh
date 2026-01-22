@@ -1,43 +1,36 @@
 #!/bin/bash
 
-# This script automates the installation and activation of the BEAMNode systemd service.
+# BEAMNode Autostart Installation Script
+# Target: Raspberry Pi (Node 5)
 
-# --- Resolve paths relative to this script ---
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="/home/pi/BEAMNode_Prototype1"
+SERVICE_NAME="beamnode.service"
+LOG_DIR="$PROJECT_ROOT/logs"
+SCRIPT_DIR="$PROJECT_ROOT/scripts/node"
 
-# --- Configuration ---
-SERVICE_FILE="$REPO_ROOT/beamnode.service"
-LAUNCHER_FULL_PATH="/home/pi/BEAMNode_Prototype1/scripts/node/launcher.py"
+echo "🚀 Starting BEAMNode installation..."
 
-# Absolute system destinations
-SERVICE_DESTINATION="/etc/systemd/system/$(basename "$SERVICE_FILE")"
+# 1. Create necessary directories
+mkdir -p "$LOG_DIR"
+mkdir -p "/home/pi/data"
+mkdir -p "/home/pi/shipping"
 
-echo "Starting BEAMNode Service Installation..."
+# 2. Set permissions
+chmod +x "$SCRIPT_DIR/launcher.py"
+chmod +x "$SCRIPT_DIR/sensor_detection/detect.py"
+chmod +x "$SCRIPT_DIR/scheduler.py"
+chmod +x "$SCRIPT_DIR/shipping_queuing/shipping.py"
 
-if [ "$(id -u)" -ne 0 ]; then
-   echo "ERROR: This script must be run with 'sudo'."
-   exit 1
-fi
+# 3. Handle Systemd Service
+echo "⚙️ Configuring systemd service..."
+sudo cp "$SCRIPT_DIR/$SERVICE_NAME" /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable "$SERVICE_NAME"
 
-# 1. Set executable permissions for the launcher script
-echo "Setting executable permission on $LAUNCHER_FULL_PATH..."
-chmod +x "$LAUNCHER_FULL_PATH"
+# 4. Install Dependencies
+echo "📦 Installing Python dependencies..."
+sudo apt-get update
+sudo apt-get install -y i2c-tools python3-pip
+pip3 install spidev RPi.GPIO pandas_ta yfinance python-dotenv picamera2 --break-system-packages
 
-# 2. Copy the service file from the repository root to the system directory
-echo "Copying $(basename "$SERVICE_FILE") to $SERVICE_DESTINATION..."
-cp "$SERVICE_FILE" "$SERVICE_DESTINATION"
-
-# 3. Reload systemd daemon to recognize the new service
-echo "Reloading systemd daemon..."
-systemctl daemon-reload
-
-# 4. Enable the service to run on boot
-echo "Enabling $SERVICE_FILE to run on startup..."
-systemctl enable "$SERVICE_FILE"
-
-# 5. Start the service immediately
-echo "Starting $SERVICE_FILE now..."
-systemctl start "$SERVICE_FILE"
-
-echo "Installation complete."
+echo "✅ Installation complete. Start service with: sudo systemctl start $SERVICE_NAME"
