@@ -1,120 +1,88 @@
 #!/usr/bin/env python3
-# launcher.py - BEAMNode service launcher
-# 1. Runs detection on startup (sensor_detection/detect.py)
-# 2. Launches Scheduler in background (scheduler.py)
-# 3. Triggers Shipping daily at 09:00 (shipping_queuing/shipping.py)
+# launcher.py - Master controller for BEAMNode Prototype 1
+# Responsibilities: Startup Detection, Scheduler Maintenance, and 13:00 Shipping.
 
 import subprocess
 import os
-import sys
 import time
+import sys
 from datetime import datetime
 
 # --- CONFIGURATION ---
-BASE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node"
-LOG_DIR = "/home/pi/BEAMNode_Prototype1/logs"
+NODE_DIR = "/home/pi/BEAMNode_Prototype1/scripts/node"
+DETECT_PATH = os.path.join(NODE_DIR, "sensor_detection/detect.py")
+SCHEDULER_PATH = os.path.join(NODE_DIR, "scheduler.py")
+SHIPPING_PATH = os.path.join(NODE_DIR, "shipping_queuing/shipping.py")
+LOG_PATH = "/home/pi/BEAMNode_Prototype1/logs/launcher.log"
 
-# Full paths to your scripts
-DETECT_SCRIPT = os.path.join(BASE_DIR, "sensor_detection/detect.py")
-SCHEDULER_SCRIPT = os.path.join(BASE_DIR, "scheduler.py")
-SHIPPING_SCRIPT = os.path.join(BASE_DIR, "shipping_queuing/shipping.py")
-
-os.makedirs(LOG_DIR, exist_ok=True)
-
-def run_script_wait(script_full_path):
-    """Runs a script and waits for it to finish (Blocking)."""
-    if not os.path.exists(script_full_path):
-        print(f"[launcher] ERROR: Script not found: {script_full_path}")
-        return False
-
-    script_name = os.path.basename(script_full_path)
-    print(f"[launcher] Running {script_name}...")
-    
+def log(msg):
+    """Internal launcher logging."""
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{ts}] [launcher] {msg}"
+    print(line)
     try:
-        # Run script. Capture output for logging.
-        result = subprocess.run(["python3", script_full_path], capture_output=True, text=True)
-        
-        # Write to log file
-        log_file = os.path.join(LOG_DIR, f"{script_name}.log")
-        with open(log_file, "a") as f:
-            f.write(f"\n--- Run at {datetime.now()} ---\n")
-            f.write(result.stdout)
-            f.write(result.stderr)
-        
-        if result.returncode != 0:
-            print(f"[launcher] ERROR: {script_name} failed with code {result.returncode}")
-            # Print stderr to systemd logs so you can see it in status
-            print(result.stderr)
-            return False
-        
-        print(f"[launcher] {script_name} completed successfully.")
-        return True
-    except Exception as e:
-        print(f"[launcher] Exception running {script_name}: {e}")
-        return False
+        with open(LOG_PATH, "a") as f:
+            f.write(line + "\n")
+    except:
+        pass
 
-def start_scheduler_background():
-    """Starts the scheduler as a background process (Non-blocking)."""
-    if not os.path.exists(SCHEDULER_SCRIPT):
-        print(f"[launcher] CRITICAL ERROR: Scheduler not found at {SCHEDULER_SCRIPT}")
+def run_script_sync(path):
+    """Runs a script and waits for it to finish (Synchronous)."""
+    if os.path.exists(path):
+        log(f"Executing: {path}")
+        subprocess.run(["python3", path])
+    else:
+        log(f"ERROR: File not found at {path}")
+
+def start_scheduler_async():
+    """Starts the original scheduler.py in the background (Asynchronous)."""
+    if os.path.exists(SCHEDULER_PATH):
+        log(f"Starting Background Scheduler: {SCHEDULER_PATH}")
+        return subprocess.Popen(["python3", SCHEDULER_PATH])
+    else:
+        log(f"CRITICAL ERROR: Scheduler script missing.")
         return None
 
-    print("[launcher] Starting scheduler.py in background...")
-    
-    # Open a log file for the scheduler's stdout/stderr
-    log_file = open(os.path.join(LOG_DIR, "scheduler_process.log"), "a")
-    
-    # We set cwd to BASE_DIR so scheduler can find config.json easily if needed
-    proc = subprocess.Popen(
-        ["python3", SCHEDULER_SCRIPT],
-        stdout=log_file,
-        stderr=log_file,
-        cwd=BASE_DIR 
-    )
-    return proc
-
-def main_loop():
-    # 1. Run Detection (Wait for it to finish)
-    # This detects sensors and updates config.json
-    success = run_script_wait(DETECT_SCRIPT)
-    if not success:
-        print("[launcher] WARNING: Detection reported errors, but proceeding to scheduler...")
-
-    # 2. Start Scheduler (Background)
-    scheduler_process = start_scheduler_background()
-    if scheduler_process is None:
-        print("[launcher] Scheduler could not start. Exiting.")
-        sys.exit(1)
-    
-    # State tracking for daily shipping
-    last_ship_date = None
-
-    print("[launcher] Entering Supervisor Loop (Monitoring Scheduler + 09:00 Shipping)")
-
-    while True:
-        current_time = datetime.now()
-        
-        # --- A. Monitor Scheduler Health ---
-        # poll() returns None if running, or the exit code if stopped
-        if scheduler_process.poll() is not None:
-            print(f"[launcher] ALERT: Scheduler crashed (code {scheduler_process.returncode}). Restarting...")
-            scheduler_process = start_scheduler_background()
-
-        # --- B. Check for 09:00 Shipping (9:00 AM) ---
-        # Run if hour is 9 AND we haven't shipped yet today
-        today_str = current_time.strftime("%Y-%m-%d")
-        
-        if current_time.hour == 9 and last_ship_date != today_str:
-            print("[launcher] It is 09:00. Starting Daily Shipping...")
-            run_script_wait(SHIPPING_SCRIPT)
-            last_ship_date = today_str # Mark as done for today
-            print("[launcher] Shipping finished. Waiting for next schedule.")
-
-        # Sleep to prevent high CPU usage (check every 10 seconds)
-        time.sleep(10)
-
 if __name__ == "__main__":
-    try:
-        main_loop()
-    except KeyboardInterrupt:
-        print("\n[launcher] Stopping service...")
+    log("=== BEAMNode System Startup ===")
+
+    # 1. REQUIREMENT: Run detect.py once on startup
+    run_script_sync(DETECT_PATH)
+
+    # 2. REQUIREMENT: Start original scheduler and keep it going
+    sched_proc = start_scheduler_async()
+
+    if sched_proc is None:
+        log("Failed to initialize scheduler. System exiting.")
+        sys.exit(1)
+
+    # 3. MONITORING LOOP
+    log("Entering master monitoring loop...")
+    while True:
+        try:
+            now = datetime.now()
+
+            # A. Check Scheduler Health (Restart if Pi went down or process crashed)
+            if sched_proc.poll() is not None:
+                log("ALERT: Scheduler process stopped. Restarting...")
+                time.sleep(5)
+                sched_proc = start_scheduler_async()
+
+            # B. REQUIREMENT: Run Shipping.py at 13:00
+            # We use a 30-second window to ensure the trigger catches
+            if now.hour == 13 and now.minute == 0 and 0 <= now.second <= 30:
+                log("13:00 Target reached. Running Shipping.py...")
+                run_script_sync(SHIPPING_PATH)
+                log("Shipping complete. Resuming monitor.")
+                time.sleep(31) # Avoid double-triggering within the same minute
+
+            # Sleep to keep CPU usage minimal
+            time.sleep(10)
+
+        except KeyboardInterrupt:
+            log("Manual shutdown detected. Terminating scheduler...")
+            sched_proc.terminate()
+            break
+        except Exception as e:
+            log(f"Unexpected monitor error: {e}")
+            time.sleep(10)
