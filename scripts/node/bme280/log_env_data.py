@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
+sys.path.insert(0, str(VENDOR_DIR))
+
 import spidev
 import json
 from datetime import datetime, timezone

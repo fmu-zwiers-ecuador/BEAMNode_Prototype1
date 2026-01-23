@@ -9,10 +9,6 @@ SERVICE_SRC="$PROJECT_ROOT/beamnode.service"
 SERVICE_NAME="beamnode.service"
 LOG_DIR="$PROJECT_ROOT/logs"
 
-echo "------------------------------------------------"
-echo "🚀 Starting BEAMNode Node 5 Installation..."
-echo "------------------------------------------------"
-
 # 2. Create Required Folders
 echo "[1/4] Preparing directories..."
 mkdir -p "/home/pi/data"

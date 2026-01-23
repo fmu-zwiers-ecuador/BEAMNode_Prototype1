@@ -59,7 +59,7 @@ def find_sensor_script(sensor):
         return None
 
     for file in os.listdir(sensor_dir):
-        if file.equals(params["script_name"]):
+        if file == (params["script_name"]):
             return file
 
     log(f"[WARN] No .py script found in '{sensor_dir}'")
