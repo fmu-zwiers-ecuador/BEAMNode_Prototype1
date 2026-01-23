@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
+sys.path.insert(0, str(VENDOR_DIR))
+
 #!/usr/bin/env python3
 import subprocess
 import os
