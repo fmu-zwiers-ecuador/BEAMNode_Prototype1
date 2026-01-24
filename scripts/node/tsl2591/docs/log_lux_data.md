@@ -1,6 +1,34 @@
-**TSL2591 JSON output and verification Documentation** 
+# **TSL2591 discription, JSON output and verification Documentation**
 
 ---
+# Basic sensor description
+
+**Sensor Description**
+
+The TSL2591 is a very high sensitivity light-to-digital converter that transforms light intensity into a digital signal output capable of direct I2C interface. The purpose of this sensor is to measure and detect lux values at a wide range. This sensor connects to four pins: 3V3(Pin 1 or 17/Power), SDA I2C(Pin 3/GPIO2), SCL I2C(Pin 5/GPIO3), and Ground(Pin 6 or 9). 
+![GPIO Pin Diagram](../images/Raspberry_pi_pin_description.png) 
+
+**Detection Script Integration**
+
+When you run the command sudo i2cdetect -y 1, it will show you all the memory addresses for bus 1, and this is where you will find the TSL2591. The address should be 0x29 on the memory table if the TSL is connected. The table in the output should look like this:
+
+        0 1 2 3 4 5 6 7 8 9 a b c d e f
+    00: 		        – – – – – – – –
+    10: – – – – – – – – – – – – – – – –
+    20: – – – – – – – – – 29 – – – – – –
+    30: – – – – – – – – – – – – – – – –
+    40: – – – – – – – – – – – – – – – –
+    50: – – – – – – – – – – – – – – – –
+    60: – – – – – – – – – – – – – – – –
+    70: – – – – – – – – – – – – – – – –
+
+**Data Logging Script Integration**
+
+Every hour, the log_lux_data.py script runs, and it stores the output(the lux data and the timestamp it was recorded) into a json file named `lux_data.json`. This file is inside the the data folder on the home folder, the file path being `home/pi/data`. Then this data is transferred from that folder, into the shipping folder. So `home/pi/data` ⇒ `home/pi/shipping`. Then the supervisor will request data from this folder for each node every hour as well.
+
+---
+
+# Script explaination
 
 **Basic Info**
 
@@ -56,61 +84,61 @@ pip3 install adafruit-circuitpython-tsl2591 --break-system-packages
 * Main script(s): BEAMNode\_Prototype1/scripts/tsl2591/log\_lux\_data.py  
 * Example run: 
 
-python3 scripts/tsl2591/log\_lux\_data.py   
-Lux data appended to lux\_data.json at 2025-10-10 16:19:28.549835
+        python3 scripts/tsl2591/log\_lux\_data.py   
+        Lux data appended to lux\_data.json at 2025-10-10 16:19:28.549835
 
-And
+    And
 
-cat data/tsl2591/lux\_data.json   
-{  
-	“node\_id”: “beam-node-01”,  
-	“sensor”: tsl2591”,  
-	“records”: \[  
-		{  
-			“timestamp”: “2025-10-08T16:11:48.024263+00:00”,  
-			“lux”: 44.018304  
-		},  
-		{  
-			“timestamp”: “2025-10-10T15:19:28.542859+00:00”,  
-			“lux”: 0.0  
-		},  
-		{  
-			“timestamp”: “2025-10-10T15:26:58.609389+00:00”,  
-			“lux”: 82.81420800001  
-		}  
-	\]  
-}
+        cat data/tsl2591/lux\_data.json   
+        {  
+            “node\_id”: “beam-node-01”,  
+            “sensor”: tsl2591”,  
+            “records”: [  
+                {  
+                    “timestamp”: “2025-10-08T16:11:48.024263+00:00”,  
+                    “lux”: 44.018304  
+                },  
+                {  
+                    “timestamp”: “2025-10-10T15:19:28.542859+00:00”,  
+                    “lux”: 0.0  
+                },  
+                {  
+                    “timestamp”: “2025-10-10T15:26:58.609389+00:00”,  
+                    “lux”: 82.81420800001  
+                }  
+            ]  
+        }
 
 * Important snippet:
 
-try:  
-    \# Attempt to load existing data if it exist, create a new dict if not  
-    if os.path.exists(file\_path):  
-        with open(file\_path, 'r') as json\_file:  
-            data \= json.load(json\_file)  
-            if not isinstance(data, dict) or "records" not in data:  
-                data \= {  
-                    "node\_id": "beam-node-01",  
+        try:  
+            # Attempt to load existing data if it exist, create a new dict if not  
+            if os.path.exists(file_path):  
+                with open(file_path, 'r') as json_file:  
+                    data = json.load(json_file)  
+                    if not isinstance(data, dict) or "records" not in data:  
+                        data = {  
+                            "node_id": "beam-node-01",  
+                            "sensor": "tsl2591",  
+                            "records": []  
+                        }  
+            else:  
+                data = {  
+                    "node_id": "beam-node-01",  
                     "sensor": "tsl2591",  
-                    "records": \[\]  
-                }  
-    else:  
-        data \= {  
-            "node\_id": "beam-node-01",  
-            "sensor": "tsl2591",  
-            "records": \[\]  
-        }
+                    "records": []  
+                }
 
-    \# Append the new data  
-    data\["records"\].append(new\_lux\_data)
+        # Append the new data  
+        data["records"].append(new_lux_data)
 
-    \# Save back to the file  
-    with open(file\_path, 'w') as json\_file:  
-        json.dump(data, json\_file, indent\=4)
+        # Save back to the file  
+        with open(file_path, 'w') as json_file:  
+            json.dump(data, json_file, indent=4)
 
-    print(f"Lux data appended to {file\_name} at {datetime.now()}")  
-except Exception as e:  
-     print(f"Error saving lux data: {e}")
+        print(f"Lux data appended to {file_name} at {datetime.now()}")  
+        except Exception as e:  
+            print(f"Error saving lux data: {e}")
 
 ---
 
