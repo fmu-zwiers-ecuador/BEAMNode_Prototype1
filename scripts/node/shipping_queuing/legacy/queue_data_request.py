@@ -1,3 +1,13 @@
+"""
+queue_data_request.py: A script that request and queues data from each node.
+
+This script checks the ping latency for all the nodes and sorts them in a queue from best connection to worst connection.
+Then the rsync command is ran on all of of the nodes to request the data from the shipping folder in the nodes to transfer them onto the shipping folder on the supervisor. 
+It should go like this: /home/pi/shipping(on node) ==> /home/pi/data(on supervisor)
+
+Author: Noel Challa and Jaylen Small
+Last Updated: 1-26-26 
+"""
 import subprocess
 import os
 import time

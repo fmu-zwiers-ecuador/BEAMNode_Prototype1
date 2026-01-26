@@ -1,3 +1,11 @@
+"""
+log_lux_data.py: A simple script to log lux data to json.
+
+This script logs the lux value along with the current timestamp into a json file, stored on the home/pi/data directory.
+
+Author: Jaylen Small
+Last Updated: 1-26-26 
+"""
 import sys
 from pathlib import Path
 
@@ -20,8 +28,6 @@ with open(config_path, "r") as f:
 
 tsl_config = config["tsl2591"]
 global_config = config["global"]
-
-
 
 node_id = global_config.get("node_id", "unknown-node")
 
