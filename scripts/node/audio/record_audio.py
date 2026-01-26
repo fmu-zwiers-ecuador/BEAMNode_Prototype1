@@ -14,6 +14,24 @@ import time
 import wave
 import pyaudio
 from datetime import datetime, timezone
+import ctypes
+from ctypes.util import find_library
+
+# Suppress ALSA warnings (from PyAudio backend)
+try:
+    def py_error_handler(filename, line, function, err, fmt):
+        pass  # Do nothing (silence ALSA C errors)
+
+    c_error_handler = ctypes.CFUNCTYPE(
+        None,
+        ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
+        ctypes.c_int, ctypes.c_char_p
+    )(py_error_handler)
+
+    asound = ctypes.CDLL(find_library('asound'))
+    asound.snd_lib_error_set_handler(c_error_handler)
+except Exception:
+    pass
 
 # Determine project root dynamically
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -26,8 +44,6 @@ with open(config_path, "r") as f:
 audio_config = config["audio"]
 global_config = config["global"]
 
-# Check if recording is enabled
-
 # Base directory: /home/pi/data/audio
 base_dir = global_config.get("base_dir", os.path.join(project_root, "data"))
 directory = os.path.join(base_dir, audio_config.get("directory", "audio"))
@@ -38,9 +54,8 @@ timestamp = datetime.now(timezone.utc).isoformat()
 file_prefix = audio_config.get("file_prefix", "recording_")
 wav_filename = os.path.join(directory, f"{file_prefix}{timestamp}.wav")
 
-# replace : with - in file name
-
-wav_filename = str.replace(":", "-")
+# Replace : with - in filename to avoid invalid characters
+wav_filename = wav_filename.replace(":", "-")
 
 # Recording parameters
 DURATION = audio_config.get("duration_sec", 10)
@@ -105,5 +120,4 @@ with open(master_json, "r+") as f:
     f.truncate()
 
 if global_config.get("print_debug", True):
-
     print(f"[BEAM] Logged record to {master_json}")
