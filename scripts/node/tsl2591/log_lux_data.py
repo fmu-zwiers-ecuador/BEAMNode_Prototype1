@@ -6,11 +6,6 @@ This script logs the lux value along with the current timestamp into a json file
 Author: Jaylen Small
 Last Updated: 1-26-26 
 """
-import sys
-from pathlib import Path
-
-VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
-sys.path.insert(0, str(VENDOR_DIR))
 
 import board
 import adafruit_tsl2591
