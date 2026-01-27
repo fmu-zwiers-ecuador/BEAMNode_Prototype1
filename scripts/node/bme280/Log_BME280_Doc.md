@@ -9,7 +9,7 @@
 *  **Mentor/Reviewer:** Dr. Paul Zwiers / Raiz Mohammed  
 *  **Date Started / Completed:** September 29th, 2025 \-  October 10th, 2025  
 *  **Status:** Done:   
-*  **GitHub Link:** [*https://github.com/fmu-zwiers-ecuador/BEAMNode\_Prototype1/blob/main/orginaldetect.py*](https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/tree/main/scripts/bme280)
+*  **GitHub Link:** [*https://github.com/fmu-zwiers-ecuador/BEAMNode\_Prototype1/scripts/node/bme280/log_env_data.py*](https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/tree/main/scripts/bme280)
 
 ---
 
