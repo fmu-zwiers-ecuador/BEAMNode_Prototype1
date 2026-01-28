@@ -21,7 +21,7 @@ STATIC_IP=${STATIC_IP:-192.168.1.2/24}
 
 echo
 echo "Using configuration:"
-echo "  SSID:       $NETWORK_NAME"
+echo "  SSID:        $NETWORK_NAME"
 echo "  Frequency:  $FREQUENCY MHz"
 echo "  IP Address: $STATIC_IP"
 echo
@@ -37,26 +37,33 @@ cat <<EOF | sudo tee /usr/local/bin/start-batman.sh >/dev/null
 
 echo "Starting BATMAN-adv mesh setup..."
 
-# Stop and disable conflicting services
-systemctl stop wpa_supplicant 2>/dev/null || true
-systemctl disable wpa_supplicant 2>/dev/null || true
-systemctl stop NetworkManager 2>/dev/null || true
-systemctl disable NetworkManager 2>/dev/null || true
+# Stop and mask conflicting services (Masking is better for mesh stability)
+systemctl stop wpa_supplicant NetworkManager 2>/dev/null || true
+systemctl mask wpa_supplicant 2>/dev/null || true
 
 # Load BATMAN kernel module
 modprobe batman-adv
 
 # Configure wlan0 for ad-hoc mode
 ip link set wlan0 down
+# Set MTU to 1532 to accommodate BATMAN encapsulation overhead
+ip link set wlan0 mtu 1532
 iw dev wlan0 set type ibss
 ip link set wlan0 up
+
+# Pi Zero: Disable Wi-Fi power saving to prevent the node from dropping
+iw dev wlan0 set power_save off
+
+# Join the ad-hoc cell (Fixed syntax error by using variables)
+sleep 1
 iw dev wlan0 ibss join $NETWORK_NAME $FREQUENCY
 
 # Add wlan0 to BATMAN
 batctl if add wlan0
+sleep 1
 ip link set up dev bat0
 
-# Assign static IP
+# Assign static IP (Handles the full range like 192.168.1.2/24)
 ip addr add $STATIC_IP dev bat0
 
 echo "BATMAN-adv setup complete!"
@@ -75,7 +82,7 @@ Wants=sys-subsystem-net-devices-wlan0.device
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/bash /usr/local/bin/start-batman.sh
+ExecStart=/usr/local/bin/start-batman.sh
 
 [Install]
 WantedBy=multi-user.target
@@ -88,7 +95,7 @@ sudo systemctl enable batman.service
 
 # --- Start service immediately ---
 echo "[4/4] Starting BATMAN service ..."
-sudo systemctl start batman.service
+sudo systemctl restart batman.service
 
 echo
 echo "✅ BATMAN-adv setup complete!"
