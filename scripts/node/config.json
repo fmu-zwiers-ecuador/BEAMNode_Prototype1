@@ -61,6 +61,7 @@
   "audio": {
     "enabled": true,
     "directory": "audio",
+    "script_name": "record_audio.py",
     "file_prefix": "recording_",
     "duration_sec": 10,
     "frequency": 60,
