@@ -59,9 +59,9 @@ def find_sensor_script(sensor):
     
     full_path = os.path.join(sensor_dir, params.get("script_name"))
 
-    if os.path.isfile(full_path) {
-        return full_path;
-    }
+    if os.path.isfile(full_path):
+        return full_path
+    
     log(f"[WARN] No .py script found in '{sensor_dir}'")
     return None
 
