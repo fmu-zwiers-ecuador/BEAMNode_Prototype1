@@ -1,3 +1,15 @@
+"""
+queue_data_request.py: A script that request and queues data from each node.
+
+This script checks to see if all 5 nodes are dead or alive, and then checks the ping latency for all the alive nodes and sorts them in a queue from best connection to worst connection.
+Then the rsync command is ran on all of the alive nodes to request the data from the shipping folder in the nodes to be transfered onto the shipping folder on the supervisor. 
+It should go like this: /home/pi/shipping(on node) ==> /home/pi/data(on supervisor)
+
+If there are any dead nodes, the script attemps to retry a connection 10 times before giving up.
+
+Author: Gabriel Gonzalez, Noel Challa and Jaylen Small
+Last Updated: 1-30-26 
+"""
 import sys
 from pathlib import Path
 
