@@ -7,8 +7,8 @@ It should go like this: /home/pi/shipping(on node) ==> /home/pi/data(on supervis
 
 If there are any dead nodes, the script attemps to retry a connection 10 times before giving up.
 
-Author: Gabriel Gonzalez, Noel Challa and Jaylen Small
-Last Updated: 1-30-26 
+Author: Gabriel Gonzalez, Noel Challa, Alex Lance, and Jaylen Small
+Last Updated: 2-4-26 
 """
 import sys
 from pathlib import Path
@@ -97,6 +97,65 @@ def rsync_pull(ip, hostname):
     except subprocess.CalledProcessError:
         return False
 
+# ---------------------------------------------------
+# CHECK DIRECTORY CONTENTS
+# ---------------------------------------------------
+def is_directory_empty(ip, name):
+    """Returns True if remote directory is empty or doesn't exist."""
+    log(f"{name}: Checking if remote shipping directory has data...")
+    # This command returns 1 if directory is empty, 0 if it has files
+    cmd = ["ssh", f"pi@{ip}", f"[ \"$(ls -A {REMOTE_SHIP_DIR} 2>/dev/null)\" ]"]
+    
+    try:
+        # If the directory has files, the exit code is 0 (success)
+        result = subprocess.run(cmd, check=True, capture_output=True)
+        return False # It is NOT empty
+    except subprocess.CalledProcessError:
+        # If the directory is empty or doesn't exist, it returns non-zero
+        log(f"{name}: Remote directory is empty. Skipping rsync.")
+        return True
+# ---------------------------------------------------
+# DATA DELETETION
+# ---------------------------------------------------
+def delete_shipping_data(ip, name):
+    log(f"{name}: Attempting to delete shipping folder data")
+    attempt_ssh = ssh(ip)
+
+    if attempt_ssh:
+        cmd = ["sudo", "rm", "-rf", f"{REMOTE_SHIP_DIR}/*"]
+        
+        try:
+            subprocess.run(cmd, check=True)
+            return True
+        except subprocess.CalledProcessError:
+            log(f"Supervisor: Failed to ssh into {name}")
+            return False
+
+# ---------------------------------------------------
+# SSH METHODs
+# ---------------------------------------------------
+def ssh(ip, name):
+    log(f"Supervisor: Attempting to ssh into {name}")
+    cmd = ["shh", f"pi@{ip}"]
+
+    try:
+        subprocess.run(cmd, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        log(f"Supervisor: Failed to ssh into {name}")
+        return False
+
+def exit_ssh(ip, name):
+    log(f"Supervisor: Exiting ssh out of {name}")
+    cmd = ["exit"]
+
+    try:
+        subprocess.run(cmd, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        log(f"Supervisor: Failed to exit ssh out of {name}")
+        return False
+
 
 # ---------------------------------------------------
 # MAIN
@@ -139,15 +198,21 @@ def main():
             continue
 
         log(f"{name}: Attempting data pull...")
-        success = rsync_pull(ip, name)
-
-        if success:
-            log(f"{name}: SUCCESS — data transferred")
-            nodes[name]["transfer_fail"] = False
+        directory_empty = is_directory_empty(ip, name)
+        
+        if directory_empty:
+            log(f"{name}: Shipping directory is empty")
         else:
-            log(f"{name}: FAILURE — data transfer failed")
-            nodes[name]["transfer_fail"] = True
-            failed_nodes.append(name)
+            success = rsync_pull(ip, name)
+
+            if success:
+                log(f"{name}: SUCCESS — data transferred")
+                nodes[name]["transfer_fail"] = False
+                delete_shipping_data(ip, name)
+            else:
+                log(f"{name}: FAILURE — data transfer failed")
+                nodes[name]["transfer_fail"] = True
+                failed_nodes.append(name)
 
     save_nodes(nodes)
 

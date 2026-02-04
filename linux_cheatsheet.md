@@ -17,6 +17,7 @@
 
 * **ping \-c 3 \-W 1 192.168.1.{node number}** Tests and displays the ping for the specified node  
 * **sudo bash enable\_wifi.sh** Runs a bash script to enable wifi on the supervisor
+* **ssh {username}@{ip}** Allows you to ssh into another pi
 
 # Commands for running and accessing files
 
