@@ -7,7 +7,7 @@ shipping folder on the nodes to the supervisor.
 
 Path: /home/pi/shipping(on node) ==> /home/pi/data(on supervisor)
 
-Author: Gabriel Gonzalez, Noel Challa, Alex Lance, Jackson Roberts,Jaylen Small
+Author: Gabriel Gonzalez, Noel Challa, Alex Lance, Jackson Roberts, Jaylen Small
 Last Updated: 2-4-26 
 """
 import sys
