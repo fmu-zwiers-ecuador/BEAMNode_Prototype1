@@ -21,9 +21,9 @@
   }
 },
 
-"aht": {
+"ahtx0": {
   "enabled": false,
-  "directory": "aht",
+  "directory": "ahtx0",
   "script_name": "log_ahtx0_paramdata.py",
   "file_name": "aht_env.json",
   "frequency": 60,

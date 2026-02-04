@@ -22,4 +22,5 @@
 
 * **nano {file\_name}.json** Allows you to edit and access json files through the terminal  
 * **sudo python3 {file\_name}.py** Runs a python file
+* **tail {file_name}** Slows the last couple lines of the file
 
