@@ -1,19 +1,19 @@
 """
 retryqueue.py: A script that request and queues data from each node.
 
-This script checks to see if all 5 nodes are dead or alive, and then checks the 
-ping status. It then uses rsync to check for new data and pull it from the 
-shipping folder on the nodes to the supervisor.
+This script checks to see if all 5 nodes are dead or alive. It then uses 
+rsync to check for new data and pull it from the shipping folder on the 
+nodes to the supervisor.
 
 Path: /home/pi/shipping(on node) ==> /home/pi/data(on supervisor)
 
-Author: Gabriel Gonzalez, Noel Challa, Alex Lance, Jackson Roberts, Jaylen Small
+Author: Gabriel Gonzalez, Noel Challa, Alex Lance, and Jaylen Small
 Last Updated: 2-4-26 
 """
 import sys
 from pathlib import Path
 
-# Adjusting path for vendor libraries if necessary
+# Adjusting path for vendor libraries
 VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
 sys.path.insert(0, str(VENDOR_DIR))
 
@@ -74,24 +74,27 @@ def ping_node(ip):
         return False
 
 def has_remote_data(ip, name):
-    """Checks if remote directory has files using rsync list mode."""
-    # Listing via rsync is faster than SSH + LS
-    cmd = ["rsync", f"pi@{ip}:{REMOTE_SHIP_DIR}/"]
+    """Checks remote directory using the rsync list method."""
+    # -d lists the directory itself; if it has contents, rsync displays them.
+    cmd = ["rsync", "-d", f"pi@{ip}:{REMOTE_SHIP_DIR}/"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        # rsync output for an empty dir shows only '.'
-        # If output lines > 1, files are present
-        files_present = len(result.stdout.strip().split('\n')) > 1
-        if not files_present:
-            log(f"{name}: No data found in shipping directory.")
-        return files_present
+        # Filter output: ignore the directory itself ('.') and empty lines
+        lines = [l for l in result.stdout.strip().split('\n') if l.strip() and not l.strip().endswith('.')]
+        
+        if len(lines) > 0:
+            return True
+        else:
+            log(f"{name}: Shipping directory is empty.")
+            return False
     except subprocess.CalledProcessError:
-        log(f"{name}: Error checking remote directory.")
+        log(f"{name}: Error checking remote directory (Check if {REMOTE_SHIP_DIR} exists).")
         return False
 
 def rsync_pull(ip):
     """Pulls data from node to supervisor."""
     os.makedirs(SUPERVISOR_DATA_ROOT, exist_ok=True)
+    # Using -avz for archive/compress and --ignore-existing to avoid duplicates
     cmd = [
         "rsync", "-avz", "--partial", "--ignore-existing",
         f"pi@{ip}:{REMOTE_SHIP_DIR}/", SUPERVISOR_DATA_ROOT
@@ -103,16 +106,15 @@ def rsync_pull(ip):
         return False
 
 def delete_shipping_data(ip, name):
-    """Clears remote shipping data via single SSH command."""
+    """Clears remote shipping data via SSH after successful transfer."""
     log(f"{name}: Wiping remote shipping folder...")
-    # Standard SSH command execution
     cmd = ["ssh", f"pi@{ip}", f"sudo rm -rf {REMOTE_SHIP_DIR}/*"]
     try:
         subprocess.run(cmd, check=True)
         log(f"{name}: SUCCESS — Remote folder cleared.")
         return True
     except subprocess.CalledProcessError:
-        log(f"{name}: ERROR — Could not clear remote data.")
+        log(f"{name}: ERROR — Could not clear remote data (Check sudo permissions).")
         return False
 
 # ---------------------------------------------------
@@ -124,7 +126,7 @@ def main():
     if not nodes:
         return
 
-    # STEP 1 — Ping & State Check
+    # STEP 1 — Update Node Online/Offline States
     log("=== PINGING ALL NODES ===")
     for name, info in nodes.items():
         ip = info["ip"]
@@ -150,7 +152,7 @@ def main():
             failed_nodes.append(name)
             continue
 
-        # Check for data before pulling
+        # Check for actual files before attempting rsync pull
         if not has_remote_data(ip, name):
             nodes[name]["transfer_fail"] = False
             continue
@@ -159,7 +161,7 @@ def main():
         if rsync_pull(ip):
             log(f"{name}: SUCCESS — transferred")
             nodes[name]["transfer_fail"] = False
-            delete_shipping_data(ip, name) # Fixed typo
+            delete_shipping_data(ip, name)
         else:
             log(f"{name}: FAILURE — transfer failed")
             nodes[name]["transfer_fail"] = True
@@ -167,7 +169,7 @@ def main():
 
     save_nodes(nodes)
 
-    # STEP 3 — Retries for Failed/Offline Nodes
+    # STEP 3 — Retries for Failed or previously Offline Nodes
     if failed_nodes:
         log(f"=== RETRYING FAILED NODES (UP TO {MAX_RETRIES}) ===")
         for attempt in range(1, MAX_RETRIES + 1):
@@ -178,7 +180,6 @@ def main():
             for name in failed_nodes:
                 ip = nodes[name]["ip"]
                 
-                # Re-ping to see if node came back online
                 if not ping_node(ip):
                     still_failing.append(name)
                     continue
