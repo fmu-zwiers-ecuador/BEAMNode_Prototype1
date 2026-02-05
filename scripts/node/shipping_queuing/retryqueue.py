@@ -76,8 +76,10 @@ def has_remote_data(full_hostname):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         lines = [l for l in result.stdout.splitlines() if l.strip() and not l.strip().endswith('.')]
+        log(f"{full_hostname}: SUCCESS checking remote data")
         return len(lines) > 0
     except:
+        log(f"{full_hostname}: ERROR — checking remote data")
         return False
 
 def rsync_pull(full_hostname):
