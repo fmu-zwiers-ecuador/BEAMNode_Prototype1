@@ -90,8 +90,8 @@ def has_remote_data(full_hostname):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         for line in result.stdout.splitlines():
-            # Check for regular files (lines starting with '-')
-            if line.strip() and line.split()[0].startswith('-'):
+            # Check for regular files (lines starting with 'd')
+            if line.strip() and line.split()[0].startswith('d'):
                 return True
         return False
     except:
