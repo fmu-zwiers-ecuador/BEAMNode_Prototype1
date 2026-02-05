@@ -81,9 +81,10 @@ def has_remote_data(full_hostname):
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         # Filter output: ignore the directory itself ('.') and empty lines
         lines = [l for l in result.stdout.strip().split('\n') if l.strip() and not l.strip().endswith('.')]
+        log(f"{full_hostname}: SUCCESS checking remote directory.")
         return len(lines) > 0
     except subprocess.CalledProcessError:
-        log(f"{full_hostname}: Error checking remote directory.")
+        log(f"{full_hostname}: ERROR checking remote directory.")
         return False
 
 def rsync_pull(full_hostname):
@@ -106,6 +107,7 @@ def delete_shipping_data(full_hostname):
     cmd = ["ssh", f"pi@{full_hostname}", f"sudo rm -rf {REMOTE_SHIP_DIR}/*"]
     try:
         subprocess.run(cmd, check=True)
+        log(f"{full_hostname}: SUCCESS clearing remote data")
         return True
     except subprocess.CalledProcessError:
         log(f"{full_hostname}: ERROR — Could not clear remote data.")
