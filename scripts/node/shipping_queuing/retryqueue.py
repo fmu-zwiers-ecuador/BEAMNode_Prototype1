@@ -89,7 +89,15 @@ def has_remote_data(full_hostname):
     cmd = ["rsync", "--list-only", "-e", f"ssh {' '.join(SSH_OPTS)}", remote_path]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        if result.stdout.strip():
+
+        entries = []
+        for line in result.stdout.striplines():
+            cleaned = line.rstrip() #This takes the original output and removes trailing whitespaces
+            if cleaned.endswith(" ."): #This ignores the actually directory (which is " .")
+                continue
+            entries.append(cleaned)
+
+        if entries: 
             log(f"{full_hostname}: SUCCESS checking remote shipping folder")
             return True
         else:
