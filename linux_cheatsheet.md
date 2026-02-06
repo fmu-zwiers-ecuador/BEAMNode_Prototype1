@@ -25,3 +25,14 @@
 * **sudo python3 {file\_name}.py** Runs a python file
 * **tail {file_name}** Slows the last couple lines of the file
 
+# Other Tutorials
+
+## How to clone a new repository on the supervisor
+
+Run the following commands in order:
+
+* **sudo rm -rf BEAMNode_Prototype1** This deletes the current respository on the supervisor
+* **sudo bash ./enable_wifi.sh** Enables wifi on the supervisor so it is able to fine the new repository from the internet
+* **git clone https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1** Clones the new repository onto the supervisor
+* **sudo reboot now** This reboots the pi so that when it comes back on, it disconnects from wifi and connects back to BATMAN
+
