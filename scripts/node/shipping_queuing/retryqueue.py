@@ -95,7 +95,8 @@ def has_remote_data(full_hostname):
         else:
             log(f"{full_hostname}: The shipping folder is empty")
             return False
-    except:
+    except Exception as e:
+        print(f"{full_hostname}: Exception {e}")
         return False
 
 def rsync_pull(full_hostname):
