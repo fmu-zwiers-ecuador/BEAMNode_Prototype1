@@ -91,8 +91,10 @@ def has_remote_data(full_hostname):
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         for line in result.stdout.splitlines():
             # Check for regular files (lines starting with 'd')
-            if line.strip() and line.split()[0].startswith('d'):
+            if line > 0:
+                log(f"{full_hostname}: SUCCESS checking remote shipping folder")
                 return True
+        log(f"{full_hostname}: The shipping folder is empty")
         return False
     except:
         return False
