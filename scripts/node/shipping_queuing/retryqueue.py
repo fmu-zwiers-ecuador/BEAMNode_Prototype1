@@ -91,7 +91,7 @@ def has_remote_data(full_hostname):
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
         entries = []
-        for line in result.stdout.striplines():
+        for line in result.stdout.splitlines():
             cleaned = line.rstrip() #This takes the original output and removes trailing whitespaces
             if cleaned.endswith(" ."): #This ignores the actually directory (which is " .")
                 continue
