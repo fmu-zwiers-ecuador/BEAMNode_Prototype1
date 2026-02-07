@@ -94,3 +94,5 @@ echo
 echo "✅ BATMAN-adv setup complete!"
 echo "To verify, run: sudo systemctl status batman.service"
 echo "Then check mesh neighbors with: sudo batctl n"
+
+

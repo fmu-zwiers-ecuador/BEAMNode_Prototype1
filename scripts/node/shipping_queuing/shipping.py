@@ -4,11 +4,6 @@ from pathlib import Path
 VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
 sys.path.insert(0, str(VENDOR_DIR))
 
-import sys
-from pathlib import Path
-
-VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
-sys.path.insert(0, str(VENDOR_DIR))
 ## Script to move all information in DATA directory to shipping directory,
 ## renaming the folder with hostname and timestamp (no zipping)
 

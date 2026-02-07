@@ -52,16 +52,16 @@ def find_sensor_script(sensor):
     """Find the Python script inside each sensor’s directory."""
     config = load_config()
     sensor_dir = os.path.join(NODE_DIR, sensor)
-
     params = config.get(sensor)
     if not os.path.isdir(sensor_dir):
         log(f"[WARN] Directory not found for sensor '{sensor}'")
         return None
+    
+    full_path = os.path.join(sensor_dir, params.get("script_name"))
 
-    for file in os.listdir(sensor_dir):
-        if file == (params["script_name"]):
-            return file
-
+    if os.path.isfile(full_path):
+        return full_path
+    
     log(f"[WARN] No .py script found in '{sensor_dir}'")
     return None
 

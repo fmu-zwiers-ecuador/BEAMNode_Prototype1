@@ -1,18 +1,21 @@
+#!/usr/bin/env python3
+"""
+retryqueue.py: Requests and queues data from nodes via mDNS.
+Path: /home/pi/shipping (on node) ==> /home/pi/data (on supervisor)
+
+Author: Gabriel Gonzalez, Noel Challa, Alex Lance, Jackson Roberts, and Jaylen Small
+Last Updated: 2-5-26 
+"""
+
 import sys
-from pathlib import Path
-
-VENDOR_DIR = Path(__file__).resolve().parents[1] / "vendor"
-sys.path.insert(0, str(VENDOR_DIR))
-
 import subprocess
 import os
-import time
 import json
 from datetime import datetime
-
+from pathlib import Path
 
 # ---------------------------------------------------
-# CONFIG
+# CONFIGURATION
 # ---------------------------------------------------
 JSON_FILEPATH = "/home/pi/BEAMNode_Prototype1/scripts/node/shipping_queuing/node_states.json"
 SUPERVISOR_DATA_ROOT = "/home/pi/data"
@@ -22,6 +25,12 @@ LOG_FILE = "/home/pi/logs/queue.log"
 MAX_RETRIES = 5
 PING_COUNT = 1
 
+# SSH options to force non-interactive mode and bypass prompts
+SSH_OPTS = [
+    "-o", "BatchMode=yes",
+    "-o", "ConnectTimeout=5",
+    "-o", "StrictHostKeyChecking=accept-new"
+]
 
 # ---------------------------------------------------
 # LOGGING
@@ -29,166 +38,164 @@ PING_COUNT = 1
 def log(msg):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] {msg}"
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(line + "\n")
     print(line)
 
-
 # ---------------------------------------------------
-# LOAD NODE STATE
+# LOAD/SAVE NODE STATE
 # ---------------------------------------------------
 def load_nodes():
     if not os.path.exists(JSON_FILEPATH):
         log(f"ERROR: node state file missing: {JSON_FILEPATH}")
         return {}
-
-    with open(JSON_FILEPATH, "r") as f:
-        return json.load(f)
-
+    try:
+        with open(JSON_FILEPATH, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        log(f"ERROR: Could not read JSON: {e}")
+        return {}
 
 def save_nodes(nodes):
-    with open(JSON_FILEPATH, "w") as f:
-        json.dump(nodes, f, indent=4)
-
-
-# ---------------------------------------------------
-# PING
-# ---------------------------------------------------
-def ping_node(ip):
-    """Return True if node responds, else False."""
     try:
-        output = subprocess.check_output(
-            ["ping", "-c", str(PING_COUNT), "-W", "1", ip],
+        with open(JSON_FILEPATH, "w") as f:
+            json.dump(nodes, f, indent=4)
+    except Exception as e:
+        log(f"ERROR: Could not save JSON: {e}")
+
+# ---------------------------------------------------
+# NETWORK & DATA OPERATIONS
+# ---------------------------------------------------
+def get_full_host(name, info):
+    raw_host = info.get("hostname", name)
+    return raw_host if raw_host.endswith(".local") else f"{raw_host}.local"
+
+def ping_node(full_hostname):
+    try:
+        subprocess.run(
+            ["ping", "-c", str(PING_COUNT), "-W", "2", full_hostname],
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            universal_newlines=True
+            check=True
         )
         return True
-    except subprocess.CalledProcessError:
+    except:
         return False
 
+def has_remote_data(full_hostname):
+    """Lists remote files to verify presence of data."""
+    remote_path = f"pi@{full_hostname}:{REMOTE_SHIP_DIR}/"
+    cmd = ["rsync", "--list-only", "-e", f"ssh {' '.join(SSH_OPTS)}", remote_path]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
-# ---------------------------------------------------
-# RSYNC
-# ---------------------------------------------------
-def rsync_pull(ip, hostname):
-    dest = SUPERVISOR_DATA_ROOT
-    os.makedirs(dest, exist_ok=True)
+        entries = []
+        for line in result.stdout.splitlines():
+            cleaned = line.rstrip() #This takes the original output and removes trailing whitespaces
+            if cleaned.endswith(" ."): #This ignores the actually directory (which is " .")
+                continue
+            entries.append(cleaned)
 
+        if entries: 
+            log(f"{full_hostname}: SUCCESS checking remote shipping folder")
+            return True
+        else:
+            log(f"{full_hostname}: The shipping folder is empty")
+            return False
+    except Exception as e:
+        print(f"{full_hostname}: Exception {e}")
+        return False
+
+def rsync_pull(full_hostname):
+    """Pulls data from node to supervisor data root."""
+    os.makedirs(SUPERVISOR_DATA_ROOT, exist_ok=True)
+    # The trailing slash on remote_source is critical to pull CONTENTS, not the folder
+    remote_source = f"pi@{full_hostname}:{REMOTE_SHIP_DIR}/"
     cmd = [
         "rsync", "-avz", "--partial", "--ignore-existing",
-        f"pi@{ip}:{REMOTE_SHIP_DIR}/", dest
+        "-e", f"ssh {' '.join(SSH_OPTS)}",
+        remote_source, SUPERVISOR_DATA_ROOT
     ]
-
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
         return True
     except subprocess.CalledProcessError:
         return False
 
+def delete_shipping_data(full_hostname):
+    """Removes data from node shipping folder after successful pull."""
+    cmd = ["ssh"] + SSH_OPTS + [f"pi@{full_hostname}", f"sudo rm -rf {REMOTE_SHIP_DIR}/*"]
+    try:
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        log(f"{full_hostname}: Remote folder cleared.")
+        return True
+    except:
+        log(f"{full_hostname}: WARNING - Failed to clear remote data.")
+        return False
 
 # ---------------------------------------------------
-# MAIN
+# MAIN PROCESS
 # ---------------------------------------------------
 def main():
-    log("=== STARTING DAILY SHIPPING QUEUE ===")
-
+    log("=== STARTING DATA TRANSFER: NODES TO SUPERVISOR ===")
     nodes = load_nodes()
+    if not nodes:
+        return
 
-    # STEP 1 — Ping all nodes
-    log("=== PINGING ALL NODES ===")
+    # STEP 1: Verify Node Health
     for name, info in nodes.items():
-        ip = info["ip"]
-        alive_before = info["node_state"]
-
-        if ping_node(ip):
-            nodes[name]["node_state"] = "alive"
-
-            if alive_before == "dead":
-                log(f"{name}: RECOVERED — node back online")
-
-        else:
-            nodes[name]["node_state"] = "dead"
-
-            if alive_before == "alive":
-                log(f"{name}: LOST CONNECTION — now dead")
-
+        full_host = get_full_host(name, info)
+        nodes[name]["node_state"] = "alive" if ping_node(full_host) else "dead"
+        if nodes[name]["node_state"] == "dead":
+            log(f"{full_host}: OFFLINE")
     save_nodes(nodes)
 
-    # STEP 2 — Attempt data transfer for ALIVE nodes
-    log("=== INITIAL DATA TRANSFER ATTEMPT ===")
+    # STEP 2: Initial Transfer Attempt
     failed_nodes = []
-
     for name, info in nodes.items():
-        ip = info["ip"]
+        full_host = get_full_host(name, info)
 
         if info["node_state"] == "dead":
-            log(f"{name}: SKIPPED — node is DEAD")
             failed_nodes.append(name)
             continue
 
-        log(f"{name}: Attempting data pull...")
-        success = rsync_pull(ip, name)
-
-        if success:
-            log(f"{name}: SUCCESS — data transferred")
+        if not has_remote_data(full_host):
+            log(f"{full_host}: No files found in {REMOTE_SHIP_DIR}/")
             nodes[name]["transfer_fail"] = False
+            continue
+
+        log(f"{full_host}: Pulling data...")
+        if rsync_pull(full_host):
+            log(f"{full_host}: TRANSFER SUCCESS")
+            nodes[name]["transfer_fail"] = False
+            delete_shipping_data(full_host)
         else:
-            log(f"{name}: FAILURE — data transfer failed")
+            log(f"{full_host}: TRANSFER FAILURE")
             nodes[name]["transfer_fail"] = True
             failed_nodes.append(name)
-
     save_nodes(nodes)
 
-    # STEP 3 — Retry failed nodes up to MAX_RETRIES
+    # STEP 3: Retries for Offline or Failed Nodes
     if failed_nodes:
-        log(f"=== RETRYING FAILED NODES (UP TO {MAX_RETRIES} TIMES) ===")
+        log(f"=== RETRYING FAILED NODES (Max {MAX_RETRIES}) ===")
+        for attempt in range(1, MAX_RETRIES + 1):
+            if not failed_nodes: break
+            log(f"--- Retry Round {attempt} ---")
+            still_failing = []
+            for name in failed_nodes:
+                full_host = get_full_host(name, nodes[name])
+                if ping_node(full_host) and has_remote_data(full_host):
+                    if rsync_pull(full_host):
+                        log(f"{full_host}: SUCCESS on retry")
+                        nodes[name]["transfer_fail"] = False
+                        delete_shipping_data(full_host)
+                        continue
+                still_failing.append(name)
+            failed_nodes = still_failing
+            save_nodes(nodes)
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        if not failed_nodes:
-            break  # all succeeded
-
-        log(f"--- RETRY ROUND {attempt}/{MAX_RETRIES} ---")
-
-        retry_success = []
-        retry_fail = []
-
-        for name in failed_nodes:
-            ip = nodes[name]["ip"]
-
-            # Check if node came online
-            if not ping_node(ip):
-                log(f"{name}: STILL DEAD — retry skipped")
-                retry_fail.append(name)
-                continue
-
-            log(f"{name}: Retrying data pull...")
-            success = rsync_pull(ip, name)
-
-            if success:
-                log(f"{name}: SUCCESS on retry #{attempt}")
-                nodes[name]["transfer_fail"] = False
-                retry_success.append(name)
-            else:
-                log(f"{name}: FAILURE on retry #{attempt}")
-                retry_fail.append(name)
-
-        # update node list
-        failed_nodes = retry_fail
-        save_nodes(nodes)
-
-        if not retry_fail:
-            break  # everything succeeded
-
-    # STEP 4 — Final result
-    if failed_nodes:
-        log("=== FINAL STATUS: SOME NODES FAILED ===")
-        for name in failed_nodes:
-            log(f"{name}: FINAL FAIL — data NOT pulled (node may be offline)")
-    else:
-        log("=== FINAL STATUS: ALL NODES SUCCEEDED ===")
-
-    log("=== END OF DAILY SHIPPING QUEUE ===")
-
+    log("=== FINAL STATUS: COMPLETED ===")
 
 if __name__ == "__main__":
     main()

@@ -17,11 +17,10 @@ sudo python3 -m pip install --upgrade pip setuptools wheel --break-system-packag
 
 # Adafruit + sensors
 sudo python3 -m pip install --break-system-packages \
-  adafruit-blinka \
-  adafruit-circuitpython-bme280 \
-  adafruit-circuitpython-tsl2591 \
-  python-tsl2591 \
-  adafruit-circuitpython-ahtx0
+  adafruit-blinka==8.69.0 \
+  adafruit-circuitpython-bme280==2.6.30 \
+  adafruit-circuitpython-tsl2591==1.4.6 \
+  adafruit-circuitpython-ahtx0==1.0.28
 
 # NOTE:
 # Do NOT apt install portaudio19-dev here (it can force exact-matching -dev deps and break on some Pi repos).
