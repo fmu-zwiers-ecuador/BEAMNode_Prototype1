@@ -44,7 +44,7 @@ sudo bash -c "cat > /etc/systemd/system/$SERVICE_NAME.timer <<EOF
 Description=Run RetryQueue daily at 1:10 PM
 
 [Timer]
-OnCalendar=*-*-* 1:10:00
+OnCalendar=*-*-* 13:10:00
 Persistent=true
 Unit=$SERVICE_NAME.service
 
