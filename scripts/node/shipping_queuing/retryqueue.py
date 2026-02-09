@@ -4,7 +4,7 @@ retryqueue.py: Requests and queues data from nodes via mDNS.
 Path: /home/pi/shipping (on node) ==> /home/pi/data (on supervisor)
 
 Author: Gabriel Gonzalez, Noel Challa, Alex Lance, Jackson Roberts, and Jaylen Small
-Last Updated: 2-5-26 
+Last Updated: 2-6-26 
 """
 
 import sys
