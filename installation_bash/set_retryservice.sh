@@ -41,10 +41,10 @@ EOF"
 # Create the Timer (Set to 14:00 daily)
 sudo bash -c "cat > /etc/systemd/system/$SERVICE_NAME.timer <<EOF
 [Unit]
-Description=Run RetryQueue daily at 11:50 PM
+Description=Run RetryQueue daily at 1:10 PM
 
 [Timer]
-OnCalendar=*-*-* 11:50:00
+OnCalendar=*-*-* 1:10:00
 Persistent=true
 Unit=$SERVICE_NAME.service
 
@@ -61,7 +61,7 @@ sudo systemctl enable --now "$SERVICE_NAME.timer"
 echo "------------------------------------------------"
 if systemctl is-active --quiet "$SERVICE_NAME.timer"; then
     echo "SUCCESS: Supervisor Queue is active!"
-    echo "The script is scheduled to run every day at 11:50 (11:50 PM)."
+    echo "The script is scheduled to run every day at 13:10 (1:10 PM)."
     echo "Next run info:"
     systemctl list-timers "$SERVICE_NAME.timer"
 else
