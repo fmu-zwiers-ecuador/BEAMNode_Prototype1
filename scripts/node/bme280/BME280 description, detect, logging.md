@@ -47,17 +47,17 @@ After the data is written, the file is available for transfer into the shipping 
 
 ---
 
-# Script explaination
+# Script explanation
 
 **Basic Info**
 
-* **Task Title:** TSL2591 JSON output and verification  
-* **Student(s):** Jaylen Small  
+* **Primary Tasks For BME280** BME280 Detection to Config, Logging environmental data JSON output and verification  
+* **Student(s):** Alexander Lance
 * **Mentor/Reviewer:** Dr. Paul Zwiers / Raiz Mohammed  
-* **Date Started / Completed:** September 29th, 2025 \-  October 11th, 2025  
+* **Date Started / Completed for this documentation:** January 23rd, 2026 \- January 27th, 2026
 * **Status:** Done  
-* **GitHub Link:** [log\_lux\_data.py](https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/blob/main/scripts/tsl2591/log_lux_data.py) 
-
+* **GitHub Link:** [*https://github.com/fmu-zwiers-ecuador/BEAMNode\_Prototype1/scripts/node/bme280/log_env_data.py*](https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/tree/main/scripts/bme280/log_env_data.py)
+[*https://github.com/fmu-zwiers-ecuador/BEAMNode\_Prototype1/scripts/node/bme280/log_env_data.py*](https://github.com/fmu-zwiers-ecuador/BEAMNode_Prototype1/tree/main/scripts/sensor_detection)
 ---
 
 **1\) Summary**
