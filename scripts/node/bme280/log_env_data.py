@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 import os
 
-import adafruit_bme280 # Fixed import
+import adafruit_bme280  # Fixed: Direct import
 import board, busio
 from digitalio import DigitalInOut
 
@@ -24,13 +24,13 @@ if not bme_config.get("enabled", True):
 
 node_id = global_config.get("node_id", "unknown-node")
 
-# SPI Pins
+# SPI Pins (Verified Green wire on Pin 29 per your photo)
 spi_config = bme_config.get("spi", {})
 CS_PIN = getattr(board, spi_config.get("cs_pin", "D5"))
 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 cs = DigitalInOut(CS_PIN)
 
-# Initialize BME280 - Fixed: Direct call from module
+# Initialize BME280 - Fixed for library version 2.6.30
 baudrate = spi_config.get("baudrate", 100000)
 sensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
