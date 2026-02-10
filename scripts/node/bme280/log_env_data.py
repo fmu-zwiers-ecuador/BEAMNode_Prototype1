@@ -1,12 +1,12 @@
+
+import spidev
 import json
 from datetime import datetime, timezone
 import os
-import sys
 
-import board
-import busio
-from digitalio import DigitalInOut
 from adafruit_bme280 import basic
+import board, busio
+from digitalio import DigitalInOut
 
 # Determine project root dynamically
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -25,33 +25,15 @@ if not bme_config.get("enabled", True):
 
 node_id = global_config.get("node_id", "unknown-node")
 
-# SPI configuration from config.json (unchanged)
+# SPI Pins
 spi_config = bme_config.get("spi", {})
-sck_pin  = spi_config.get("sck_pin", "SCK")
-mosi_pin = spi_config.get("mosi_pin", "MOSI")
-miso_pin = spi_config.get("miso_pin", "MISO")
-cs_pin   = spi_config.get("cs_pin", "D5")
-baudrate = spi_config.get("baudrate")  # Read but don't apply on Pi
+CS_PIN = getattr(board, spi_config.get("cs_pin", "D5"))
+spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
+cs  = DigitalInOut(CS_PIN)
 
-# Create SPI bus (Raspberry Pi / Blinka)
-spi = busio.SPI(
-    getattr(board, sck_pin),
-    MOSI=getattr(board, mosi_pin),
-    MISO=getattr(board, miso_pin),
-)
-
-# Chip select pin
-cs = DigitalInOut(getattr(board, cs_pin))
-
-# Apply baudrate ONLY if running on CircuitPython
-if sys.implementation.name == "circuitpython" and baudrate is not None:
-    while not spi.try_lock():
-        pass
-    spi.configure(baudrate=baudrate)
-    spi.unlock()
-
-# Initialize BME280 (NO baudrate argument)
-sensor = basic.Adafruit_BME280_SPI(spi, cs)
+# Initialize BME280
+baudrate = spi_config.get("baudrate", 100000)
+sensor = basic.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
 # Read values
 temperature = float(sensor.temperature)
@@ -59,12 +41,8 @@ humidity = float(sensor.humidity)
 pressure = float(sensor.pressure)
 
 # Directory and file for logs
-directory = os.path.join(
-    global_config.get("base_dir", os.path.join(project_root, "data")),
-    bme_config.get("directory", "bme280"),
-)
+directory = os.path.join(global_config.get("base_dir", os.path.join(project_root, "data")), bme_config.get("directory", "bme280"))
 os.makedirs(directory, exist_ok=True)
-
 file_name = bme_config.get("file_name", "env_data.json")
 file_path = os.path.join(directory, file_name)
 
@@ -73,7 +51,7 @@ env_json_data = {
     "timestamp": datetime.now(timezone.utc).isoformat(),
     "temperature_C": temperature,
     "humidity_percent": humidity,
-    "pressure_hPa": pressure,
+    "pressure_hPa": pressure
 }
 
 # Append to JSON
@@ -83,23 +61,11 @@ try:
             try:
                 data = json.load(f)
                 if not isinstance(data, dict) or "records" not in data:
-                    data = {
-                        "node_id": node_id,
-                        "sensor": "bme280",
-                        "records": [],
-                    }
+                    data = {"node_id": node_id, "sensor": "bme280", "records": []}
             except Exception:
-                data = {
-                    "node_id": node_id,
-                    "sensor": "bme280",
-                    "records": [],
-                }
+                data = {"node_id": node_id, "sensor": "bme280", "records": []}
     else:
-        data = {
-            "node_id": node_id,
-            "sensor": "bme280",
-            "records": [],
-        }
+        data = {"node_id": node_id, "sensor": "bme280", "records": []}
 
     data["records"].append(env_json_data)
 
@@ -108,6 +74,6 @@ try:
 
     if global_config.get("print_debug", True):
         print(f"Env data appended to {file_name} at {datetime.now(timezone.utc)}")
-
 except Exception as e:
     print(f"Error saving env data: {e}")
+
