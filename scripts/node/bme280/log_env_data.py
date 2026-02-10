@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 import os
 
-from adafruit_bme280.spi import Adafruit_BME280_SPI
+import adafruit_bme280 # Fixed import
 import board, busio
 from digitalio import DigitalInOut
 
@@ -26,14 +26,13 @@ node_id = global_config.get("node_id", "unknown-node")
 
 # SPI Pins
 spi_config = bme_config.get("spi", {})
-cs_pin_name = spi_config.get("cs_pin", "D5")
-CS_PIN = getattr(board, cs_pin_name)
+CS_PIN = getattr(board, spi_config.get("cs_pin", "D5"))
 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 cs = DigitalInOut(CS_PIN)
 
-# Initialize BME280
+# Initialize BME280 - Fixed: Direct call from module
 baudrate = spi_config.get("baudrate", 100000)
-sensor = Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
+sensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
 # Read values
 temperature = float(sensor.temperature)
@@ -41,11 +40,8 @@ humidity = float(sensor.humidity)
 pressure = float(sensor.pressure)
 
 # Directory and file for logs
-base_dir = global_config.get("base_dir", os.path.join(project_root, "data"))
-log_dir = bme_config.get("directory", "bme280")
-directory = os.path.join(base_dir, log_dir)
+directory = os.path.join(global_config.get("base_dir", os.path.join(project_root, "data")), bme_config.get("directory", "bme280"))
 os.makedirs(directory, exist_ok=True)
-
 file_name = bme_config.get("file_name", "env_data.json")
 file_path = os.path.join(directory, file_name)
 
