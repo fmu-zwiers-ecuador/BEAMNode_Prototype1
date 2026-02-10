@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 import os
 
-import adafruit_bme280
+from adafruit_bme280.spi import Adafruit_BME280_SPI
 import board, busio
 from digitalio import DigitalInOut
 
@@ -33,7 +33,7 @@ cs = DigitalInOut(CS_PIN)
 
 # Initialize BME280
 baudrate = spi_config.get("baudrate", 100000)
-sensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
+sensor = Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
 # Read values
 temperature = float(sensor.temperature)
