@@ -1,9 +1,10 @@
+
 import spidev
 import json
 from datetime import datetime, timezone
 import os
 
-import adafruit_bme280  # Fixed: Direct import
+from adafruit_bme280 import basic
 import board, busio
 from digitalio import DigitalInOut
 
@@ -24,15 +25,15 @@ if not bme_config.get("enabled", True):
 
 node_id = global_config.get("node_id", "unknown-node")
 
-# SPI Pins (Verified Green wire on Pin 29 per your photo)
+# SPI Pins
 spi_config = bme_config.get("spi", {})
 CS_PIN = getattr(board, spi_config.get("cs_pin", "D5"))
 spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-cs = DigitalInOut(CS_PIN)
+cs  = DigitalInOut(CS_PIN)
 
-# Initialize BME280 - Fixed for library version 2.6.30
+# Initialize BME280
 baudrate = spi_config.get("baudrate", 100000)
-sensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
+sensor = basic.Adafruit_BME280_SPI(spi, cs, baudrate=baudrate)
 
 # Read values
 temperature = float(sensor.temperature)
@@ -75,3 +76,4 @@ try:
         print(f"Env data appended to {file_name} at {datetime.now(timezone.utc)}")
 except Exception as e:
     print(f"Error saving env data: {e}")
+
