@@ -41,7 +41,7 @@ last_run_times = {}
 current_time = datetime.now()
 
 #beginning of next hour
-start_time = (current_time + timedelta(hours=0)).replace(minute=3, second=0, microsecond=0)
+start_time = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
 
 def load_config():
     """Load frequency configuration for all sensors."""
