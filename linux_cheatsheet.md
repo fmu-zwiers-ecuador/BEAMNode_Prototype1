@@ -8,6 +8,8 @@
 * **sudo rm \-rf {repo\_name}** Deletes the specified repository  
 * **sudo i2cdetect \-y {bus number}** Show the connected sensors and their memory address in the specified bus  
 * **sudo reboot now** Reboots the pi
+* **pip3 show adafruit-blinka** Shows information about the adafruit libaray
+* **pip3 list | grep adafruit** List all installed adafruit packages and their versions
 
 # Rsync Commands
 
